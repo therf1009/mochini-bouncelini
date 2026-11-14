@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEditor;
 using UnityEngine;
 
@@ -65,5 +66,35 @@ public static class NerfedEditorUtil
         go.GetComponent<MeshRenderer>().sharedMaterial = mat;
         if (!keepCollider) Object.DestroyImmediate(go.GetComponent<Collider>());
         return go;
+    }
+
+    /// <summary>
+    /// Text in lume (TextMeshPro 3D). FOLOSITI DOAR ASTA pentru texte in lume.
+    ///
+    /// De ce: TextMeshPro are RectTransform, iar acolo pozitia x/y se tine in anchoredPosition.
+    /// Setand localPosition direct, anchoredPosition ramanea (0, 0) si la salvare Unity pastra doar z:
+    /// toate textele ajungeau la originea parintelui (in stanga nivelului).
+    /// Acum pozitia sta pe un suport obisnuit (Transform), iar textul e copilul lui, la zero.
+    ///
+    /// Returneaza textul; suportul e text.transform.parent (acolo se pun rotatia si PromptWobble).
+    /// </summary>
+    public static TextMeshPro WorldText(Transform parent, string name, string text, Vector3 localPos,
+                                        float fontSize, Color color, FontStyles style, Vector2 box)
+    {
+        var holder = new GameObject(name).transform;
+        holder.SetParent(parent, false);
+        holder.localPosition = localPos;
+
+        var textGo = new GameObject("Text");
+        textGo.transform.SetParent(holder, false);
+        var t = textGo.AddComponent<TextMeshPro>();
+        t.rectTransform.anchoredPosition3D = Vector3.zero;
+        t.rectTransform.sizeDelta = box;
+        t.text = text;
+        t.fontSize = fontSize;
+        t.fontStyle = style;
+        t.color = color;
+        t.alignment = TextAlignmentOptions.Center;
+        return t;
     }
 }

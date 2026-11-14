@@ -78,16 +78,8 @@ public static class Level3Builder
         var screen = NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Screen", bossRoot, new Vector3(0f, 0.25f, -0.66f), new Vector3(2.4f, 1.6f, 0.1f), screenMat, keepCollider: false);
         NerfedEditorUtil.Primitive(PrimitiveType.Cube, "EyeL", bossRoot, new Vector3(-0.55f, 0.4f, -0.72f), new Vector3(0.35f, 0.35f, 0.1f), redEye, keepCollider: false);
         NerfedEditorUtil.Primitive(PrimitiveType.Cube, "EyeR", bossRoot, new Vector3(0.55f, 0.4f, -0.72f), new Vector3(0.35f, 0.35f, 0.1f), redEye, keepCollider: false);
-        var nameGo = new GameObject("Name");
-        nameGo.transform.SetParent(bossRoot, false);
-        var bossName = nameGo.AddComponent<TextMeshPro>();
-        bossName.text = "DIRECTOR";
-        bossName.fontSize = 3f;
-        bossName.fontStyle = FontStyles.Bold;
-        bossName.color = light;
-        bossName.alignment = TextAlignmentOptions.Center;
-        bossName.rectTransform.sizeDelta = new Vector2(3f, 0.6f);
-        nameGo.transform.localPosition = new Vector3(0f, -1.1f, -0.7f);
+        NerfedEditorUtil.WorldText(bossRoot, "Name", "DIRECTOR", new Vector3(0f, -1.1f, -0.7f), 3f, light,
+                                   FontStyles.Bold, new Vector2(3f, 0.6f));
 
         var boss = bossRoot.gameObject.AddComponent<DirectorBoss>();
         boss.activateX = 44f;

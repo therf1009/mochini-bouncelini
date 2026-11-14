@@ -54,16 +54,9 @@ public static class OverworldPortalsBuilder
             NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Beam", root, new Vector3(0f, 3.1f, 0f), new Vector3(2.8f, 0.4f, 0.5f), frame, keepCollider: true);
             var glowGo = NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Glow", root, new Vector3(0f, 1.45f, 0f), new Vector3(2f, 2.9f, 0.08f), glow, keepCollider: false);
 
-            var promptGo = new GameObject("Prompt");
-            promptGo.transform.SetParent(root, false);
-            var tmp = promptGo.AddComponent<TextMeshPro>();
-            tmp.text = Labels[i];
-            tmp.fontSize = 5f;
-            tmp.fontStyle = FontStyles.Bold;
-            tmp.color = new Color(0.15f, 0.14f, 0.18f);
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.rectTransform.sizeDelta = new Vector2(8f, 3f);
-            promptGo.transform.localPosition = new Vector3(0f, 4.2f, -1.6f);   // deasupra grinzii, in fata ramei
+            // deasupra grinzii, in fata ramei
+            var tmp = NerfedEditorUtil.WorldText(root, "Prompt", Labels[i], new Vector3(0f, 4.2f, -1.6f), 5f,
+                                                 new Color(0.15f, 0.14f, 0.18f), FontStyles.Bold, new Vector2(8f, 3f));
 
             var portal = root.gameObject.AddComponent<Portal>();
             portal.levelIndex = i;

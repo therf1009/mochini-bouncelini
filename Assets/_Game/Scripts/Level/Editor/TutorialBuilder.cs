@@ -205,18 +205,10 @@ public static class TutorialBuilder
 
     static void Prompt(Transform parent, string text, Vector3 pos, float tilt, float size = 6f, bool faceCamera = false)
     {
-        var go = new GameObject("Prompt");
-        go.transform.SetParent(parent, false);
-        var t = go.AddComponent<TextMeshPro>();
-        t.text = text;
-        t.fontSize = size;
-        t.fontStyle = FontStyles.Italic;
-        t.color = Ink;
-        t.alignment = TextAlignmentOptions.Center;
-        t.rectTransform.sizeDelta = new Vector2(14f, 4f);
-        go.transform.localPosition = pos;
-        go.transform.localRotation = Quaternion.Euler(0f, 0f, tilt);
-        go.AddComponent<PromptWobble>().faceCamera = faceCamera;
+        var t = NerfedEditorUtil.WorldText(parent, "Prompt", text, pos, size, Ink, FontStyles.Italic, new Vector2(14f, 4f));
+        var holder = t.transform.parent;
+        holder.localRotation = Quaternion.Euler(0f, 0f, tilt);
+        holder.gameObject.AddComponent<PromptWobble>().faceCamera = faceCamera;
     }
 
     static void Checkpoint(Transform parent, Vector2 pos)

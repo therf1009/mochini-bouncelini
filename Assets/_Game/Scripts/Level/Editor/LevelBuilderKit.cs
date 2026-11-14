@@ -39,18 +39,11 @@ public static class LevelBuilderKit
     /// <summary>Text in lume, in fata geometriei, cu leganare lina.</summary>
     public static TextMeshPro Prompt(Transform parent, string text, Vector2 pos, float tilt, Color color, float size = 6f)
     {
-        var go = new GameObject("Prompt");
-        go.transform.SetParent(parent, false);
-        var t = go.AddComponent<TextMeshPro>();
-        t.text = text;
-        t.fontSize = size;
-        t.fontStyle = FontStyles.Italic;
-        t.color = color;
-        t.alignment = TextAlignmentOptions.Center;
-        t.rectTransform.sizeDelta = new Vector2(14f, 4f);
-        go.transform.localPosition = new Vector3(pos.x, pos.y, -1.2f);
-        go.transform.localRotation = Quaternion.Euler(0f, 0f, tilt);
-        go.AddComponent<PromptWobble>();
+        var t = NerfedEditorUtil.WorldText(parent, "Prompt", text, new Vector3(pos.x, pos.y, -1.2f), size, color,
+                                           FontStyles.Italic, new Vector2(14f, 4f));
+        var holder = t.transform.parent;
+        holder.localRotation = Quaternion.Euler(0f, 0f, tilt);
+        holder.gameObject.AddComponent<PromptWobble>();
         return t;
     }
 
@@ -139,16 +132,8 @@ public static class LevelBuilderKit
         NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeR", root, new Vector3(0.17f, 1.15f, 1.55f), Vector3.one * 0.13f, eye, keepCollider: false);
         NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Sign", root, new Vector3(0f, 2.4f, 1.2f), new Vector3(2.8f, 0.7f, 0.1f), wood, keepCollider: false);
 
-        var labelGo = new GameObject("SignText");
-        labelGo.transform.SetParent(root, false);
-        var label = labelGo.AddComponent<TextMeshPro>();
-        label.text = speaker;
-        label.fontSize = 3.2f;
-        label.fontStyle = FontStyles.Bold;
-        label.color = Color.white;
-        label.alignment = TextAlignmentOptions.Center;
-        label.rectTransform.sizeDelta = new Vector2(2.7f, 0.6f);
-        labelGo.transform.localPosition = new Vector3(0f, 2.4f, 1.1f);
+        NerfedEditorUtil.WorldText(root, "SignText", speaker, new Vector3(0f, 2.4f, 1.1f), 3.2f, Color.white,
+                                   FontStyles.Bold, new Vector2(2.7f, 0.6f));
 
         var talk = Prompt(root, "E   -   talk", new Vector2(0f, 3.3f), 0f, promptColor, 4.5f);
 
@@ -171,16 +156,8 @@ public static class LevelBuilderKit
         root.localPosition = pos;
         var token = NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Token", root, Vector3.zero, Vector3.one * 0.55f, glow, keepCollider: false);
 
-        var labelGo = new GameObject("Label");
-        labelGo.transform.SetParent(root, false);
-        var label = labelGo.AddComponent<TextMeshPro>();
-        label.text = "REVERT";
-        label.fontSize = 3f;
-        label.fontStyle = FontStyles.Bold;
-        label.color = labelColor;
-        label.alignment = TextAlignmentOptions.Center;
-        label.rectTransform.sizeDelta = new Vector2(3f, 0.6f);
-        labelGo.transform.localPosition = new Vector3(0f, 0.9f, -1.2f);
+        NerfedEditorUtil.WorldText(root, "Label", "REVERT", new Vector3(0f, 0.9f, -1.2f), 3f, labelColor,
+                                   FontStyles.Bold, new Vector2(3f, 0.6f));
 
         var pickup = root.gameObject.AddComponent<AbilityPickup>();
         pickup.ability = ability;

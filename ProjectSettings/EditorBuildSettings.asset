@@ -20,5 +20,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Game/Scenes/OpenWorld.unity
     guid: 6019a1cea3fe6a74daf7fff08da983d5
+  - enabled: 1
+    path: Assets/_Game/Scenes/Level1.unity
+    guid: 4bf70e16fa9934743a99f83566f09c48
+  - enabled: 1
+    path: Assets/_Game/Scenes/Level2.unity
+    guid: a9cefe0574fe6e9488ab359a660a0587
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

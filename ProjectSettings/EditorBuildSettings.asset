@@ -16,6 +16,9 @@ EditorBuildSettings:
     guid: 31e0683e769b2b94e80c08258f5ecead
   - enabled: 1
     path: Assets/_Game/Scenes/OpenWorld.unity
+    guid: 59882665e9a01d04eb60b79ae2639519
+  - enabled: 1
+    path: Assets/_Game/Scenes/OpenWorld.unity
     guid: 6019a1cea3fe6a74daf7fff08da983d5
   m_configObjects:
     com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

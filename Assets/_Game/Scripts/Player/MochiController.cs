@@ -201,14 +201,14 @@ public class MochiController : MonoBehaviour
         lastJumpPressedTime = -99f;
         isGrounded = false;
         squash = -squashAmount * (0.9f + t * 0.6f);
-        // feel: screen shake la lansare - se activeaza in Pachetul 2 (Camera)
+        CameraShake.Shake(0.12f + t * 0.18f);
     }
 
     void OnLand(float impactSpeed)
     {
         float strength = Mathf.InverseLerp(2f, 18f, impactSpeed);
         squash = squashAmount * (0.4f + strength);
-        // feel: screen shake la aterizare - se activeaza in Pachetul 2 (Camera)
+        if (strength > 0.05f) CameraShake.Shake(strength * landShakeScale);
         if (!softLandingEnabled && strength > 0.5f) hitStopTimer = hitStopDuration;
     }
 
@@ -229,7 +229,7 @@ public class MochiController : MonoBehaviour
 
             squash = squashAmount * 0.9f;
             hitStopTimer = hitStopDuration;
-            // feel: screen shake la wall bounce - se activeaza in Pachetul 2 (Camera)
+            CameraShake.Shake(0.15f);
             return;
         }
     }

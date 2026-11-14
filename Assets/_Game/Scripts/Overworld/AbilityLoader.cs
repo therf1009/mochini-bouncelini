@@ -2,7 +2,7 @@ using UnityEngine;
 
 /// <summary>
 /// Aplica abilitatile castigate pe controllerul de pe acelasi obiect.
-/// Merge si pe mochi-ul din open world, si pe cel din niveluri (double jump).
+/// Merge si pe mochi-ul din open world, si pe cel din niveluri (dash + double jump).
 /// </summary>
 public class AbilityLoader : MonoBehaviour
 {
@@ -19,6 +19,9 @@ public class AbilityLoader : MonoBehaviour
 
         var mochi = GetComponent<MochiController>();
         if (mochi != null)
+        {
+            mochi.dashEnabled = GameProgress.Has(Ability.Dash);
             mochi.doubleBounceEnabled = GameProgress.Has(Ability.DoubleJump);
+        }
     }
 }

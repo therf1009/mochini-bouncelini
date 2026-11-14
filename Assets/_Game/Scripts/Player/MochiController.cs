@@ -17,6 +17,7 @@ public class MochiController : MonoBehaviour
     public bool wallBounceEnabled = true;
     public bool softLandingEnabled = true;
     public bool doubleBounceEnabled = false;  // al doilea impuls in aer. IMPLICIT OPRIT — se aprinde ca abilitate la nivelul 2.
+    public bool dashEnabled = false;          // dash orizontal (SHIFT). IMPLICIT OPRIT — se castiga la nivelul 1.
 
     [Header("Deplasare")]
     public float moveSpeed = 7f;
@@ -38,6 +39,11 @@ public class MochiController : MonoBehaviour
     public float maxLaunchSpeed = 18f;
     [Range(0f, 1f)] public float chargeMoveDamp = 0.25f;
     [Range(0f, 2f)] public float launchHorizontalBias = 0.72f;
+
+    [Header("Dash (abilitatea de la nivelul 1)")]
+    public float dashSpeed = 16f;
+    public float dashTime = 0.18f;
+    public float dashCooldown = 0.3f;
 
     [Header("Wall Bounce")]
     [Range(0f, 1f)] public float wallBounciness = 0.82f;
@@ -73,10 +79,15 @@ public class MochiController : MonoBehaviour
     float squash;          // >0 turtit, <0 alungit
     float hitStopTimer;
     float airControlLock;  // >0 imediat dupa wall bounce
+    bool dashPressedThisFrame;
+    float facing = 1f;     // ultima directie in care te-ai miscat (pentru dash fara tasta de directie)
+    float dashTimer, dashCooldownTimer, dashDir;
+    bool airDashUsed;      // un singur dash in aer, pana aterizezi
     Vector2 preStepVelocity;   // viteza cu care intra in pasul de fizica (pentru wall bounce)
 
     public bool IsGrounded => isGrounded;
     public bool IsCharging => isCharging;
+    public bool IsDashing => dashTimer > 0f;
     public float ChargeRatio => Mathf.Clamp01((holdTime - chargeStartDelay) / Mathf.Max(0.01f, maxChargeTime));
     int maxJumps => doubleBounceEnabled ? 2 : 1;   // 1 de sol + 1 in aer = maxim dublu
 
@@ -95,6 +106,11 @@ public class MochiController : MonoBehaviour
         ReadInput();
 
         if (jumpPressedThisFrame) lastJumpPressedTime = Time.time;
+
+        // Dash: oricand pe sol (cu cooldown), o singura data in aer
+        if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
+        if (dashEnabled && dashPressedThisFrame && dashTimer <= 0f && dashCooldownTimer <= 0f && (isGrounded || !airDashUsed))
+            StartDash();
 
         // Charge: tine apasat cat timp esti pe sol
         if (chargeLaunchEnabled && jumpHeld && isGrounded)
@@ -134,6 +150,17 @@ public class MochiController : MonoBehaviour
             return;
         }
 
+        // in timpul dash-ului: linie dreapta pe orizontala, fara gravitatie
+        if (dashTimer > 0f)
+        {
+            dashTimer -= Time.fixedDeltaTime;
+            rb.gravityScale = 0f;
+            rb.linearVelocity = new Vector2(dashDir * dashSpeed, 0f);
+            GroundCheck();
+            preStepVelocity = rb.linearVelocity;
+            return;
+        }
+
         GroundCheck();
         ApplyHorizontal();
         ApplyGravity();
@@ -145,12 +172,15 @@ public class MochiController : MonoBehaviour
     void ReadInput()
     {
         var kb = Keyboard.current;
-        if (kb == null) { moveInput = 0f; return; }
+        if (kb == null) { moveInput = 0f; dashPressedThisFrame = false; return; }
 
         float x = 0f;
         if (kb.aKey.isPressed || kb.leftArrowKey.isPressed) x -= 1f;
         if (kb.dKey.isPressed || kb.rightArrowKey.isPressed) x += 1f;
         moveInput = x;
+        if (x != 0f) facing = Mathf.Sign(x);
+
+        dashPressedThisFrame = kb.leftShiftKey.wasPressedThisFrame || kb.rightShiftKey.wasPressedThisFrame;
 
         bool held = kb.spaceKey.isPressed || kb.wKey.isPressed || kb.upArrowKey.isPressed;
         jumpPressedThisFrame = held && !jumpHeld;
@@ -180,6 +210,7 @@ public class MochiController : MonoBehaviour
         if (isGrounded)
         {
             lastGroundedTime = Time.time;
+            airDashUsed = false;
             if (!wasGrounded) OnLand(Mathf.Abs(rb.linearVelocityY));
         }
     }
@@ -230,6 +261,19 @@ public class MochiController : MonoBehaviour
         CameraShake.Shake(0.08f);
     }
 
+    void StartDash()
+    {
+        dashDir = Mathf.Abs(moveInput) > 0.01f ? Mathf.Sign(moveInput) : facing;
+        dashTimer = dashTime;
+        dashCooldownTimer = dashCooldown;
+        if (!isGrounded) airDashUsed = true;
+        isCharging = false;
+        holdTime = 0f;
+        rb.linearVelocity = new Vector2(dashDir * dashSpeed, 0f);
+        squash = squashAmount * 0.8f;   // se lungeste pe orizontala
+        CameraShake.Shake(0.08f);
+    }
+
     void Launch()
     {
         float t = ChargeRatio;
@@ -273,6 +317,7 @@ public class MochiController : MonoBehaviour
             if (vy < 0f) vy += wallBounceLift;
             rb.linearVelocity = new Vector2(Mathf.Sign(normal.x) * incoming * wallBounciness, vy);
             airControlLock = wallBounceControlLock;
+            dashTimer = 0f;   // un dash intr-un perete devine bounce, nu continua in perete
 
             squash = squashAmount * 0.9f;
             hitStopTimer = hitStopDuration;

@@ -30,10 +30,8 @@ public static class TestRoomBuilder
         System.IO.Directory.CreateDirectory("Assets/_Game/Scenes");
         EditorSceneManager.SaveScene(scene, ScenePath);
 
-        EditorBuildSettings.scenes = new[]
-        {
-            new EditorBuildSettingsScene(ScenePath, true)
-        };
+        // adauga scena fara sa le stearga pe celelalte (title, tutorial, open world)
+        NerfedEditorUtil.AddSceneToBuild(ScenePath);
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();

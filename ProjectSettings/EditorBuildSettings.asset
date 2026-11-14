@@ -6,6 +6,10 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/_Game/Scenes/TitleScreen.unity
+    guid: 0573e522b33c3594ca8c9dab231c557b
+  - enabled: 1
     path: Assets/_Game/Scenes/TestRoom.unity
     guid: 2d9ce7049fac4204cb3eda6fa78a8630
-  m_configObjects: {}
+  m_configObjects:
+    com.unity.dt.app-ui: {fileID: 11400000, guid: 1b1c20d82303e4b5781c3ef50ac1449f, type: 2}

@@ -3,14 +3,24 @@ using UnityEngine.InputSystem;
 
 /// <summary>
 /// Mochi-ul in open world (3D, camera de sus, inclinata).
-/// WASD/sageti = mers relativ la camera, SPACE = salt.
+/// WASD/sageti = mers relativ la camera, SPACE = salt, SHIFT = dash (daca e deblocat).
+///
+/// Abilitatile sunt sloturi oprite implicit; le porneste progresul (AbilityLoader):
+///   canDash        -> castigat la nivelul 1 (trece groapa dintre insula 1 si 2)
+///   canDoubleJump  -> castigat la nivelul 2 (urca platoul insulei 3)
 ///
 /// Repere (cu valorile implicite):
 ///   salt simplu: ~1.6 sus, ~4.3 in lungime
+///   salt + dash: ~7.5 in lungime
+///   double jump: ~3.2 sus
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
 public class OverworldController : MonoBehaviour
 {
+    [Header("Abilitati (le seteaza progresul)")]
+    public bool canDash;
+    public bool canDoubleJump;
+
     [Header("Miscare")]
     public float moveSpeed = 6f;
     public float accel = 50f;
@@ -18,6 +28,11 @@ public class OverworldController : MonoBehaviour
     public float jumpHeight = 1.6f;
     public float coyoteTime = 0.08f;
     public float jumpBuffer = 0.1f;
+
+    [Header("Dash")]
+    public float dashSpeed = 18f;
+    public float dashTime = 0.18f;
+    public float dashCooldown = 0.35f;
 
     [Header("Respawn")]
     public float killY = -8f;
@@ -33,9 +48,15 @@ public class OverworldController : MonoBehaviour
     float vertVel;
     float lastGroundedTime = -99f;
     float lastJumpPressTime = -99f;
+    int airJumpsUsed;
+    bool airDashUsed;
+    float dashTimer, dashCooldownTimer;
+    Vector3 dashDir;
     Vector3 lastSafePos;
     bool wasGrounded;
     float squash;   // >0 turtit, <0 alungit
+
+    public bool IsDashing => dashTimer > 0f;
 
     void Awake()
     {
@@ -51,7 +72,7 @@ public class OverworldController : MonoBehaviour
 
     void Update()
     {
-        ReadInput(out Vector2 input, out bool jumpPressed);
+        ReadInput(out Vector2 input, out bool jumpPressed, out bool dashPressed);
 
         // directia de mers e relativa la camera, proiectata pe sol
         Vector3 fwd = Vector3.forward, right = Vector3.right;
@@ -66,6 +87,8 @@ public class OverworldController : MonoBehaviour
         if (grounded)
         {
             lastGroundedTime = Time.time;
+            airJumpsUsed = 0;
+            airDashUsed = false;
             if (vertVel < 0f) vertVel = -2f;   // tine-l lipit de sol
             lastSafePos = transform.position;
             if (!wasGrounded) squash = 0.25f;  // aterizare
@@ -73,18 +96,44 @@ public class OverworldController : MonoBehaviour
         wasGrounded = grounded;
 
         if (jumpPressed) lastJumpPressTime = Time.time;
+        dashCooldownTimer -= Time.deltaTime;
 
-        horizVel = Vector3.MoveTowards(horizVel, wish, accel * Time.deltaTime);
-
-        bool buffered = Time.time - lastJumpPressTime <= jumpBuffer;
-        bool coyote = Time.time - lastGroundedTime <= coyoteTime;
-        if (buffered && coyote)
+        // ---- dash: o data in aer, oricand pe sol (cu cooldown)
+        bool dashAllowed = canDash && dashTimer <= 0f && dashCooldownTimer <= 0f && (grounded || !airDashUsed);
+        if (dashPressed && dashAllowed)
         {
-            Jump();
-            lastGroundedTime = -99f;
+            dashDir = wish.sqrMagnitude > 0.01f ? wish.normalized : FacingDir(fwd);
+            dashTimer = dashTime;
+            dashCooldownTimer = dashCooldown;
+            if (!grounded) airDashUsed = true;
+            squash = -0.3f;
         }
 
-        vertVel += gravity * Time.deltaTime;
+        if (dashTimer > 0f)
+        {
+            dashTimer -= Time.deltaTime;
+            horizVel = dashDir * dashSpeed;
+            vertVel = 0f;   // dash-ul e orizontal: nu urca, nu cade
+        }
+        else
+        {
+            horizVel = Vector3.MoveTowards(horizVel, wish, accel * Time.deltaTime);
+
+            bool buffered = Time.time - lastJumpPressTime <= jumpBuffer;
+            bool coyote = Time.time - lastGroundedTime <= coyoteTime;
+            if (buffered && coyote)
+            {
+                Jump();
+                lastGroundedTime = -99f;
+            }
+            else if (jumpPressed && !coyote && canDoubleJump && airJumpsUsed < 1)
+            {
+                Jump();
+                airJumpsUsed++;
+            }
+
+            vertVel += gravity * Time.deltaTime;
+        }
 
         cc.Move((horizVel + Vector3.up * vertVel) * Time.deltaTime);
 
@@ -96,10 +145,11 @@ public class OverworldController : MonoBehaviour
         UpdateVisual();
     }
 
-    void ReadInput(out Vector2 input, out bool jumpPressed)
+    void ReadInput(out Vector2 input, out bool jumpPressed, out bool dashPressed)
     {
         input = Vector2.zero;
         jumpPressed = false;
+        dashPressed = false;
 
         var kb = Keyboard.current;
         if (kb != null)
@@ -109,6 +159,7 @@ public class OverworldController : MonoBehaviour
             if (kb.wKey.isPressed || kb.upArrowKey.isPressed) input.y += 1f;
             if (kb.sKey.isPressed || kb.downArrowKey.isPressed) input.y -= 1f;
             jumpPressed = kb.spaceKey.wasPressedThisFrame;
+            dashPressed = kb.leftShiftKey.wasPressedThisFrame || kb.rightShiftKey.wasPressedThisFrame;
         }
 
         var pad = Gamepad.current;
@@ -117,6 +168,7 @@ public class OverworldController : MonoBehaviour
             Vector2 stick = pad.leftStick.ReadValue();
             if (stick.sqrMagnitude > 0.04f) input = stick;
             jumpPressed |= pad.buttonSouth.wasPressedThisFrame;
+            dashPressed |= pad.buttonWest.wasPressedThisFrame || pad.rightShoulder.wasPressedThisFrame;
         }
 
         input = Vector2.ClampMagnitude(input, 1f);
@@ -136,6 +188,14 @@ public class OverworldController : MonoBehaviour
         cc.enabled = true;
         horizVel = Vector3.zero;
         vertVel = 0f;
+        dashTimer = 0f;
+    }
+
+    Vector3 FacingDir(Vector3 fallback)
+    {
+        if (visual == null) return fallback;
+        Vector3 f = Vector3.ProjectOnPlane(visual.forward, Vector3.up);
+        return f.sqrMagnitude > 0.01f ? f.normalized : fallback;
     }
 
     void UpdateVisual()

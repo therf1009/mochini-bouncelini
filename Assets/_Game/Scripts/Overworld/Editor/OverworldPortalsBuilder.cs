@@ -6,7 +6,7 @@ using UnityEngine;
 /// <summary>
 /// Meniu: NERFED > Add Portals To Open World.
 /// Deschide OpenWorld.unity, pune cate un portal pe fiecare PortalSpot_N si
-/// adauga AbilityLoader pe mochi. Se poate rula de mai multe ori: inlocuieste portalurile vechi.
+/// adauga AbilityLoader si OverworldSpawn pe mochi. Se poate rula de mai multe ori: inlocuieste portalurile vechi.
 /// </summary>
 public static class OverworldPortalsBuilder
 {
@@ -63,7 +63,7 @@ public static class OverworldPortalsBuilder
             tmp.color = new Color(0.15f, 0.14f, 0.18f);
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.rectTransform.sizeDelta = new Vector2(8f, 3f);
-            promptGo.transform.localPosition = new Vector3(0f, 4.6f, 0f);
+            promptGo.transform.localPosition = new Vector3(0f, 4.2f, -1.6f);   // deasupra grinzii, in fata ramei
 
             var portal = root.gameObject.AddComponent<Portal>();
             portal.levelIndex = i;
@@ -75,6 +75,8 @@ public static class OverworldPortalsBuilder
         var player = Object.FindFirstObjectByType<OverworldController>();
         if (player != null && player.GetComponent<AbilityLoader>() == null)
             player.gameObject.AddComponent<AbilityLoader>();
+        if (player != null && player.GetComponent<OverworldSpawn>() == null)
+            player.gameObject.AddComponent<OverworldSpawn>();   // la intoarcerea dintr-un nivel: apari la portal
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);

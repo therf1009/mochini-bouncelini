@@ -15,6 +15,8 @@ public class Portal : MonoBehaviour
 
     public Renderer glow;
     public TextMeshPro prompt;
+    [Tooltip("Unde sta textul fata de portal: deasupra grinzii si in fata ramei (spre camera), ca sa nu fie acoperit.")]
+    public Vector3 promptOffset = new Vector3(0f, 4.2f, -1.6f);
 
     public Color idleColor = new Color(0.35f, 0.85f, 0.95f);
     public Color nearColor = new Color(1f, 0.72f, 0.30f);
@@ -55,7 +57,12 @@ public class Portal : MonoBehaviour
             glow.SetPropertyBlock(block);
         }
 
-        if (prompt != null && cam != null) prompt.transform.rotation = cam.rotation;
+        if (prompt != null && near)
+        {
+            // pozitionat din cod la fiecare cadru, nu din scena: oricum ar fi fost salvat, nu ajunge in spatele portalului
+            prompt.transform.position = transform.position + promptOffset;
+            if (cam != null) prompt.transform.rotation = cam.rotation;
+        }
 
         if (near && InteractPressed() && !ScreenFader.Busy)
         {

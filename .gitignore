@@ -112,3 +112,6 @@ InitTestScene*.unity*
 
 # Auto-generated cache in Assets folder
 /[Aa]ssets/[Ss]ceneDependencyCache*
+
+# Unity: folder creat la recuperarea dupa un crash; nu se comite
+/[Aa]ssets/_Recovery*

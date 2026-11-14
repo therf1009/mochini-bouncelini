@@ -43,6 +43,7 @@ public class MochiController : MonoBehaviour
     [Range(0f, 1f)] public float wallBounciness = 0.82f;
     public float minWallBounceSpeed = 6f;
     public float wallBounceLift = 2.5f;
+    public float wallBounceControlLock = 0.2f;   // cat timp dupa bounce nu poti trage inapoi spre perete
 
     [Header("Detectie")]
     public LayerMask solidMask = ~0;
@@ -71,6 +72,8 @@ public class MochiController : MonoBehaviour
 
     float squash;          // >0 turtit, <0 alungit
     float hitStopTimer;
+    float airControlLock;  // >0 imediat dupa wall bounce
+    Vector2 preStepVelocity;   // viteza cu care intra in pasul de fizica (pentru wall bounce)
 
     public bool IsGrounded => isGrounded;
     public bool IsCharging => isCharging;
@@ -122,15 +125,21 @@ public class MochiController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (airControlLock > 0f) airControlLock -= Time.fixedDeltaTime;
+
         if (hitStopTimer > 0f)
         {
             hitStopTimer -= Time.fixedDeltaTime;
+            preStepVelocity = rb.linearVelocity;
             return;
         }
 
         GroundCheck();
         ApplyHorizontal();
         ApplyGravity();
+
+        // retinuta ACUM, inainte de pasul de fizica: dupa ciocnire viteza spre perete e deja ~0
+        preStepVelocity = rb.linearVelocity;
     }
 
     void ReadInput()
@@ -177,6 +186,9 @@ public class MochiController : MonoBehaviour
 
     void ApplyHorizontal()
     {
+        // imediat dupa wall bounce, lasa bounce-ul sa duca (altfel tasta tinuta te trage inapoi in perete)
+        if (airControlLock > 0f && !isGrounded) return;
+
         float target = moveInput * moveSpeed;
         if (isCharging) target *= chargeMoveDamp;
 
@@ -245,16 +257,22 @@ public class MochiController : MonoBehaviour
     {
         if (!wallBounceEnabled || isGrounded) return;
 
-        foreach (var contact in c.contacts)
+        // Cand se apeleaza asta, fizica a rezolvat deja ciocnirea: rb.linearVelocity spre perete e ~0.
+        // De aceea bounce-ul se calculeaza din viteza de DINAINTE de impact (preStepVelocity).
+        for (int i = 0; i < c.contactCount; i++)
         {
-            // perete = normala aproape orizontala
-            if (Mathf.Abs(contact.normal.x) < 0.7f) continue;
+            Vector2 normal = c.GetContact(i).normal;
 
-            float incoming = Mathf.Abs(rb.linearVelocityX);
+            if (Mathf.Abs(normal.x) < 0.7f) continue;            // perete = normala aproape orizontala
+            if (preStepVelocity.x * normal.x >= 0f) continue;    // nu veneai spre perete
+
+            float incoming = Mathf.Abs(preStepVelocity.x);
             if (incoming < minWallBounceSpeed) continue;
 
-            rb.linearVelocityX = contact.normal.x * incoming * wallBounciness;
-            if (rb.linearVelocityY < 0f) rb.linearVelocityY += wallBounceLift;
+            float vy = preStepVelocity.y;
+            if (vy < 0f) vy += wallBounceLift;
+            rb.linearVelocity = new Vector2(Mathf.Sign(normal.x) * incoming * wallBounciness, vy);
+            airControlLock = wallBounceControlLock;
 
             squash = squashAmount * 0.9f;
             hitStopTimer = hitStopDuration;

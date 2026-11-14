@@ -16,6 +16,7 @@ public class MochiController : MonoBehaviour
     public bool chargeLaunchEnabled = true;
     public bool wallBounceEnabled = true;
     public bool softLandingEnabled = true;
+    public bool doubleBounceEnabled = false;  // al doilea impuls in aer. IMPLICIT OPRIT — se aprinde ca abilitate la nivelul 2.
 
     [Header("Deplasare")]
     public float moveSpeed = 7f;
@@ -66,6 +67,7 @@ public class MochiController : MonoBehaviour
     float holdTime;
     bool isCharging;
     bool isGrounded;
+    int jumpsUsed;         // cate salturi s-au folosit de la ultima aterizare
 
     float squash;          // >0 turtit, <0 alungit
     float hitStopTimer;
@@ -73,6 +75,7 @@ public class MochiController : MonoBehaviour
     public bool IsGrounded => isGrounded;
     public bool IsCharging => isCharging;
     public float ChargeRatio => Mathf.Clamp01((holdTime - chargeStartDelay) / Mathf.Max(0.01f, maxChargeTime));
+    int maxJumps => doubleBounceEnabled ? 2 : 1;   // 1 de sol + 1 in aer = maxim dublu
 
     void Awake()
     {
@@ -99,15 +102,20 @@ public class MochiController : MonoBehaviour
 
         if (jumpReleasedThisFrame)
         {
-            if (isCharging) Launch();
-            else if (hopEnabled && CanHop()) Hop();
+            if (isCharging) { Launch(); jumpsUsed = Mathf.Max(jumpsUsed, 1); }
+            else if (hopEnabled && CanGroundHop()) Hop();
             holdTime = 0f;
             isCharging = false;
         }
 
-        // Hop din buffer, fara charge (ex: apesi in aer putin inainte de aterizare)
-        if (!isCharging && hopEnabled && jumpHeld && holdTime < chargeStartDelay && CanHop())
+        // Hop de sol din buffer (apasare scurta, inainte sa inceapa charge-ul)
+        if (!isCharging && hopEnabled && jumpHeld && holdTime < chargeStartDelay && CanGroundHop())
             Hop();
+
+        // Double bounce: al doilea impuls in aer, pe apasare. Plafon dur = maxim dublu salt.
+        if (hopEnabled && doubleBounceEnabled && jumpPressedThisFrame
+            && !isGrounded && !CanGroundHop() && jumpsUsed < maxJumps)
+            AirHop();
 
         UpdateVisual();
     }
@@ -145,10 +153,20 @@ public class MochiController : MonoBehaviour
     {
         bool wasGrounded = isGrounded;
         Vector2 origin = rb.position + Vector2.down * (col.radius * 0.35f);
-        RaycastHit2D hit = Physics2D.CircleCast(
+        var hits = Physics2D.CircleCastAll(
             origin, col.radius * 0.92f, Vector2.down, groundCheckDistance, solidMask);
 
-        isGrounded = hit.collider != null && rb.linearVelocityY <= 0.01f;
+        // ignora propriul collider — altfel cast-ul se loveste de el si crede ca e mereu
+        // pe sol (asta era cauza salturilor infinite)
+        bool onSolid = false;
+        foreach (var h in hits)
+        {
+            if (h.collider == null || h.collider == col) continue;
+            onSolid = true;
+            break;
+        }
+
+        isGrounded = onSolid && rb.linearVelocityY <= 0.01f;
 
         if (isGrounded)
         {
@@ -174,7 +192,7 @@ public class MochiController : MonoBehaviour
         rb.gravityScale = rb.linearVelocityY > 0.01f ? gravityUp : gravityDown;
     }
 
-    bool CanHop()
+    bool CanGroundHop()
     {
         bool hasCoyote = Time.time - lastGroundedTime <= coyoteTime;
         bool hasBuffer = Time.time - lastJumpPressedTime <= jumpBuffer;
@@ -187,7 +205,17 @@ public class MochiController : MonoBehaviour
         lastGroundedTime = -99f;
         lastJumpPressedTime = -99f;
         isGrounded = false;
+        jumpsUsed = 1;                   // primul salt consumat
         squash = -squashAmount * 0.8f;   // se alungeste la desprindere
+    }
+
+    void AirHop()
+    {
+        rb.linearVelocityY = hopVelocity;   // reseteaza caderea -> al doilea salt clar
+        jumpsUsed++;                        // al doilea salt consumat (plafon la maxJumps)
+        lastJumpPressedTime = -99f;
+        squash = -squashAmount * 0.7f;
+        CameraShake.Shake(0.08f);
     }
 
     void Launch()
@@ -206,6 +234,7 @@ public class MochiController : MonoBehaviour
 
     void OnLand(float impactSpeed)
     {
+        jumpsUsed = 0;                 // reseteaza salturile la aterizare
         float strength = Mathf.InverseLerp(2f, 18f, impactSpeed);
         squash = squashAmount * (0.4f + strength);
         if (strength > 0.05f) CameraShake.Shake(strength * landShakeScale);

@@ -3,7 +3,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
-/// Meniu: NERFED > Build Open World. Scena "OpenWorld": trei insule plutitoare.
+/// Meniu: Mochini Bouncelini > Build Open World. Scena "OpenWorld": trei insule plutitoare.
 ///
 ///   Insula A (start)  x -7..7      sus la y 0     -> portalul 1
 ///   groapa            x 7..12.5    (5.5)          -> doar salt + dash (nivelul 1 da dash)
@@ -11,13 +11,13 @@ using UnityEngine;
 ///   faleza            +2.6 pe verticala           -> doar double jump (nivelul 2 il da)
 ///   Insula C (platou) x 24.5..36.5 sus la y 2.6   -> portalul 3, ultimul nivel
 ///
-/// Portalurile propriu-zise le pune NERFED > Add Portals To Open World, pe locurile PortalSpot_N.
+/// Portalurile propriu-zise le pune Mochini Bouncelini > Add Portals To Open World, pe locurile PortalSpot_N.
 /// </summary>
 public static class OverworldBuilder
 {
     public const string ScenePath = NerfedEditorUtil.ScenesDir + "/OpenWorld.unity";
 
-    [MenuItem("NERFED/Build Open World")]
+    [MenuItem("Mochini Bouncelini/Build Open World")]
     public static void Build()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -87,9 +87,16 @@ public static class OverworldBuilder
         // radacina vizualului la talpi, ca squash-ul sa-l turteasca spre sol
         var visualRoot = new GameObject("VisualRoot").transform;
         visualRoot.SetParent(player.transform, false);
+        // corpul se rostogoleste (petele arata rostogolirea); ochii stau pe "Face", care ramane cu fata inainte
         var body = NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "Body", visualRoot, new Vector3(0f, 0.5f, 0f), Vector3.one, mochi, keepCollider: false);
-        NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeL", body.transform, new Vector3(-0.17f, 0.12f, 0.45f), Vector3.one * 0.12f, eye, keepCollider: false);
-        NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeR", body.transform, new Vector3(0.17f, 0.12f, 0.45f), Vector3.one * 0.12f, eye, keepCollider: false);
+        Material spot = NerfedEditorUtil.Mat("M_MochiSpot", new Color(1f, 0.78f, 0.45f));
+        foreach (var sp in new[] { new Vector3(0.3f, 0.32f, -0.25f), new Vector3(-0.35f, -0.1f, -0.3f), new Vector3(0.05f, -0.42f, 0.2f), new Vector3(-0.2f, 0.3f, 0.35f) })
+            NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "Spot", body.transform, sp.normalized * 0.47f, Vector3.one * 0.16f, spot, keepCollider: false);
+        var face = new GameObject("Face").transform;
+        face.SetParent(visualRoot, false);
+        face.localPosition = new Vector3(0f, 0.5f, 0f);
+        NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeL", face, new Vector3(-0.17f, 0.12f, 0.45f), Vector3.one * 0.12f, eye, keepCollider: false);
+        NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeR", face, new Vector3(0.17f, 0.12f, 0.45f), Vector3.one * 0.12f, eye, keepCollider: false);
 
         var controller = player.AddComponent<OverworldController>();
         controller.visual = visualRoot;
@@ -112,7 +119,7 @@ public static class OverworldBuilder
         NerfedEditorUtil.AddSceneToBuild(ScenePath);
         AssetDatabase.SaveAssets();
 
-        Debug.Log("[NERFED] Open world construit: " + ScenePath +
+        Debug.Log("[Mochini] Open world construit: " + ScenePath +
                   "   |   WASD = mers, SPACE = salt. Dash si double jump sunt inca blocate.");
     }
 

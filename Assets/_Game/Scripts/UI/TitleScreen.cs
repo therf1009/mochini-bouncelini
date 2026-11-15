@@ -73,7 +73,7 @@ public class TitleScreen : MonoBehaviour
 
         if (!Application.CanStreamedLevelBeLoaded(next))
         {
-            Debug.LogWarning("[NERFED] Scena '" + next + "' nu exista inca in Build Settings. " +
+            Debug.LogWarning("[Mochini] Scena '" + next + "' nu exista inca in Build Settings. " +
                              "Va merge dupa ce construim Tutorial / OpenWorld.");
             yield return new WaitForSecondsRealtime(0.6f);
             if (fadeOverlay != null) fadeOverlay.alpha = 0f;
@@ -95,6 +95,6 @@ public class TitleScreen : MonoBehaviour
     void ResetFirstTime()
     {
         PlayerPrefs.DeleteKey(PlayedKey);
-        Debug.Log("[NERFED] Flag-ul de prima rulare a fost resetat.");
+        Debug.Log("[Mochini] Flag-ul de prima rulare a fost resetat.");
     }
 }

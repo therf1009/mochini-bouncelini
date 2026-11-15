@@ -37,7 +37,7 @@ public class SceneExit2D : MonoBehaviour
 
         if (!ScreenFader.CanLoad(targetScene))
         {
-            if (!warned) Debug.LogWarning("[NERFED] Scena '" + targetScene + "' nu e construita inca.");
+            if (!warned) Debug.LogWarning("[Mochini] Scena '" + targetScene + "' nu e construita inca.");
             warned = true;
             return;
         }

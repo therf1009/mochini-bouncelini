@@ -22,7 +22,7 @@ public class EndingSequence : MonoBehaviour
     {
         "REVERTING TO v1.0.0 ...",
         "",
-        "NERFED",
+        "MOCHINI BOUNCELINI",
         "made in 24 hours at HAVEN Brasov",
         "theme: BOUNCE BACK",
         "",
@@ -36,7 +36,7 @@ public class EndingSequence : MonoBehaviour
 
     IEnumerator Run()
     {
-        var mochi = FindFirstObjectByType<MochiController>();
+        var mochi = FindAnyObjectByType<MochiController>();
         var respawn = mochi != null ? mochi.GetComponent<Respawn2D>() : null;
         if (respawn != null) respawn.enabled = false;   // de aici nu mai exista checkpoint-uri
 
@@ -48,21 +48,29 @@ public class EndingSequence : MonoBehaviour
 
         if (crumbleRoot != null)
         {
-            Vector3 center = mochi != null ? mochi.transform.position : crumbleRoot.position;
+            // fiecare cub in parte (nu piesele intregi), de la cel mai departat spre mochi, in ~5 secunde
+            Vector3 center = mochi != null && mochi.visual != null ? mochi.visual.position : crumbleRoot.position;
             var blocks = new List<Transform>();
-            foreach (Transform child in crumbleRoot) blocks.Add(child);
-            blocks.Sort((a, b) => Vector2.Distance(b.position, center).CompareTo(Vector2.Distance(a.position, center)));
-
-            foreach (var b in blocks)
+            foreach (var r in crumbleRoot.GetComponentsInChildren<Renderer>()) blocks.Add(r.transform);
+            blocks.Sort((a, b) => Vector3.Distance(b.position, center).CompareTo(Vector3.Distance(a.position, center)));
+            int perStep = Mathf.Max(1, Mathf.CeilToInt(blocks.Count * blockInterval / 5f));
+            for (int i = 0; i < blocks.Count; i++)
             {
+                var b = blocks[i];
                 foreach (var c in b.GetComponentsInChildren<Collider2D>()) c.enabled = false;
                 StartCoroutine(Shrink(b));
-                yield return new WaitForSeconds(blockInterval);
+                if (i % perStep == perStep - 1) yield return new WaitForSeconds(blockInterval);
             }
         }
 
+        if (FezRoom.Active != null) FezRoom.Active.SetPhysicsEnabled(false);   // si podeaua (coliziunea) dispare
         PatchNoteUI.Show("PATCH 2.0.2", "Removed: mochi.", "Thank you for playing.");
-        if (mochi != null) mochi.enabled = false;
+        if (mochi != null)
+        {
+            mochi.enabled = false;
+            var body = mochi.GetComponent<Rigidbody2D>();
+            if (body != null) body.gravityScale = 4.6f;   // cade, nu pluteste (daca era in dash sau lipit de perete)
+        }
         yield return new WaitForSeconds(2f);
         yield return WhiteOut();
         ScreenFader.FadeToScene(titleScene, 1.2f);

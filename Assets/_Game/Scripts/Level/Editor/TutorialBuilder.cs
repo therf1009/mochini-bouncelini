@@ -5,7 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
-/// Meniu: NERFED > Build Tutorial. Scena "Tutorial", in doua parti:
+/// Meniu: Mochini Bouncelini > Build Tutorial. Scena "Tutorial", in doua parti:
 ///
 /// 1. Coridorul (2D, stil schita): miscare -> hop -> groapa (cazi, reapari) -> charge launch -> wall bounce.
 ///    Reperele vin din MochiController: hop ~1.9 sus (treptele de 1.5), charge ~5 sus (marginea de 3.5).
@@ -32,7 +32,7 @@ public static class TutorialBuilder
     const int PillarX = 61;
     const int StairCount = 6;
 
-    [MenuItem("NERFED/Build Tutorial")]
+    [MenuItem("Mochini Bouncelini/Build Tutorial")]
     public static void Build()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -71,7 +71,7 @@ public static class TutorialBuilder
         Prompt(corridor, "A / D   -   move", new Vector3(3f, 3.5f, -1f), 3f);
         Prompt(corridor, "SPACE   -   hop", new Vector3(10.5f, 4.8f, -1f), -2.5f);
         Prompt(corridor, "fell?  that's fine.\nyou come right back.", new Vector3(21.2f, 5f, -1f), 2f);
-        Prompt(corridor, "hold SPACE   -   charge\nlet go   -   launch", new Vector3(26f, 5.5f, -1f), -3f);
+        Prompt(corridor, "hold W   -   charge\nlet go   -   launch", new Vector3(26f, 5.5f, -1f), -3f);
         Prompt(corridor, "launch into a wall\n-   wall bounce   ->", new Vector3(36.5f, 6.5f, -1f), 2f);
 
         Checkpoint(corridor, new Vector2(18f, 0f));
@@ -177,8 +177,8 @@ public static class TutorialBuilder
         NerfedEditorUtil.AddSceneToBuild(ScenePath);
         AssetDatabase.SaveAssets();
 
-        Debug.Log("[NERFED] Tutorial construit: " + ScenePath +
-                  "   |   A/D, SPACE scurt = hop, SPACE tinut = charge, Q/E = rotire (doar in camera de la capat).");
+        Debug.Log("[Mochini] Tutorial construit: " + ScenePath +
+                  "   |   A/D, SPACE = hop, W tinut = charge, Q/E = rotire (doar in camera de la capat).");
     }
 
     /// <summary>Treapta m (1..6): mereu in coloana PillarX, la inaltimea m, la adancimea k = RoomZ + 6 - m.

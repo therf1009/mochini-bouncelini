@@ -22,6 +22,7 @@ public class AbilityLoader : MonoBehaviour
         {
             mochi.dashEnabled = GameProgress.Has(Ability.Dash);
             mochi.doubleBounceEnabled = GameProgress.Has(Ability.DoubleJump);
+            mochi.wallStickEnabled = GameProgress.Has(Ability.WallStick);
         }
     }
 }

@@ -1,8 +1,9 @@
 using UnityEngine;
 
 /// <summary>
-/// Ceva care arunca "patch-uri" spre mochi (turela, Directorul). Cand un patch ii e trimis inapoi
-/// cu Bounce Back, se intoarce la el si il loveste (OnReflectedHit).
+/// Ceva care arunca "patch-uri" spre mochi (turela, boss-ul). Cand un patch ii e trimis inapoi
+/// cu scutul Bounce Back, se intoarce la el si il loveste (OnReflectedHit).
+/// Pozitia pe ecran (ScreenPosition) tine cont de rotirea lumii, deci merge si in camerele rotative.
 /// </summary>
 public abstract class PatchSource : MonoBehaviour
 {
@@ -13,9 +14,12 @@ public abstract class PatchSource : MonoBehaviour
 
     public abstract void OnReflectedHit(PatchProjectile projectile);
 
+    /// <summary>Unde e sursa pe ecran (planul fizicii), la unghiul curent.</summary>
+    public virtual Vector2 ScreenPosition => FezRoom.Screen(transform.position);
+
     protected Transform FindPlayer()
     {
-        var mochi = FindFirstObjectByType<MochiController>();
+        var mochi = FindAnyObjectByType<MochiController>();
         return mochi != null ? mochi.transform : null;
     }
 

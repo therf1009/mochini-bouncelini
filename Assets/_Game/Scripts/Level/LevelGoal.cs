@@ -16,16 +16,17 @@ public class LevelGoal : MonoBehaviour
 
     void Start()
     {
-        var mochi = FindFirstObjectByType<MochiController>();
+        var mochi = FindAnyObjectByType<MochiController>();
         if (mochi != null) player = mochi.transform;
     }
 
     void Update()
     {
         if (done || player == null || Time.timeScale == 0f) return;
-        if (Vector2.Distance(player.position, transform.position) > radius) return;
+        if (Vector2.Distance(player.position, FezRoom.Screen(transform.position)) > radius) return;   // pe ecran, din orice unghi
 
         done = true;
+        FezRotator.Locked = true;   // nimic nu mai porneste pana la fade
         StartCoroutine(Finish());
     }
 
@@ -47,7 +48,8 @@ public class LevelGoal : MonoBehaviour
         {
             case Ability.Dash: return "Dash";
             case Ability.DoubleJump: return "Double jump";
-            default: return "Bounce Back";
+            case Ability.WallStick: return "Wall stick";
+            default: return "Bounce Back shield";
         }
     }
 

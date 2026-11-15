@@ -198,9 +198,41 @@ public class OverworldController : MonoBehaviour
         return f.sqrMagnitude > 0.01f ? f.normalized : fallback;
     }
 
+    // --- rostogolire (corpul se rostogoleste, ochii raman in fata) si "idle" viu ---
+    Transform bodyPart, facePart;
+    float roll, idleTime, lookYaw, lookTarget, lookTimer = 2f;
+    Vector3 faceBase;
+
     void UpdateVisual()
     {
         if (visual == null) return;
+        float dt = Time.deltaTime;
+        if (bodyPart == null) { bodyPart = visual.Find("Body"); facePart = visual.Find("Face"); if (facePart != null) faceBase = facePart.localPosition; }
+
+        // corpul e o minge: se rostogoleste exact cat a mers (unghi = distanta / raza)
+        float speed = new Vector3(horizVel.x, 0f, horizVel.z).magnitude;
+        roll += speed * dt / 0.5f * Mathf.Rad2Deg;
+        bool idle = speed < 0.2f && cc.isGrounded;
+        idleTime = idle ? idleTime + dt : 0f;
+        float settle = Mathf.Clamp01(idleTime * 1.5f);
+        // pe loc: se leagana usor inainte-inapoi, ca o minge care nu sta niciodata chiar locului
+        float rock = Mathf.Sin(Time.time * 1.4f) * 9f * settle;
+        if (bodyPart != null) bodyPart.localRotation = Quaternion.Euler(roll + rock, 0f, Mathf.Sin(Time.time * 0.9f) * 4f * settle);
+
+        // fata: respira odata cu corpul si, din cand in cand, se uita in jur
+        if (idle)
+        {
+            lookTimer -= dt;
+            if (lookTimer <= 0f) { lookTimer = Random.Range(1.8f, 4f); lookTarget = Random.value < 0.4f ? 0f : Random.Range(-35f, 35f); }
+        }
+        else lookTarget = 0f;
+        lookYaw = Mathf.Lerp(lookYaw, lookTarget, 1f - Mathf.Exp(-6f * dt));
+        if (facePart != null)
+        {
+            facePart.localRotation = Quaternion.Euler(Mathf.Sin(Time.time * 1.4f) * 3f * settle, lookYaw, 0f);
+            facePart.localPosition = faceBase + Vector3.up * (Mathf.Sin(Time.time * 2.4f) * 0.025f * settle);
+        }
+        if (idle) squash = Mathf.Max(squash, 0.03f * (0.5f + 0.5f * Mathf.Sin(Time.time * 2.4f)));
 
         Vector3 flat = new Vector3(horizVel.x, 0f, horizVel.z);
         if (flat.sqrMagnitude > 0.1f)

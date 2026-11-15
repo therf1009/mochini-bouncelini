@@ -4,7 +4,8 @@ public enum Ability
 {
     Dash,        // nivelul 1
     DoubleJump,  // nivelul 2
-    Third        // nivelul 3 (abilitatea "spicy"; jocul se termina acolo)
+    Third,       // nivelul 3: Bounce Back, acum ca SCUT (F tinut). Jocul se termina acolo.
+    WallStick    // nivelul 3: te lipesti de perete tinand SPACE, dai drumul si te lansezi
 }
 
 /// <summary>

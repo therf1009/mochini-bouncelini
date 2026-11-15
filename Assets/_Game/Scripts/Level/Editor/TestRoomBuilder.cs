@@ -12,7 +12,7 @@ public static class TestRoomBuilder
     const string MatPath = "Assets/_Game/Art/Materials/M_White.mat";
     const string PhysMatPath = "Assets/_Game/Art/Materials/PM_Mochi.physicsMaterial2D";
 
-    [MenuItem("NERFED/Build Test Room")]
+    [MenuItem("Mochini Bouncelini/Build Test Room")]
     public static void Build()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -36,8 +36,8 @@ public static class TestRoomBuilder
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("[NERFED] Camera de test construita: " + ScenePath +
-                  "   |   A/D sau sageti = deplasare, SPACE scurt = hop, SPACE tinut = charge launch.");
+        Debug.Log("[Mochini] Camera de test construita: " + ScenePath +
+                  "   |   A/D sau sageti = deplasare, SPACE = hop, W tinut = charge launch.");
     }
 
     // ---------------------------------------------------------------- resurse

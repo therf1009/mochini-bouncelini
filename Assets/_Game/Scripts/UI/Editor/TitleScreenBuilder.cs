@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// Construieste scena de title screen. Meniu: NERFED > Build Title Screen.
+/// Construieste scena de title screen. Meniu: Mochini Bouncelini > Build Title Screen.
 /// O pune PRIMA in Build Settings, ca jocul sa porneasca de aici.
 /// Fontul e cel implicit din TMP — inlocuiti-l cu fontul "cool" pe obiectul Title.
 /// </summary>
@@ -14,7 +14,7 @@ public static class TitleScreenBuilder
 {
     const string ScenePath = "Assets/_Game/Scenes/TitleScreen.unity";
 
-    [MenuItem("NERFED/Build Title Screen")]
+    [MenuItem("Mochini Bouncelini/Build Title Screen")]
     public static void Build()
     {
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -45,16 +45,28 @@ public static class TitleScreenBuilder
         scaler.matchWidthOrHeight = 0.5f;
         canvasGo.AddComponent<GraphicRaycaster>();
 
-        // titlul mare
-        var title = CreateText(canvasGo.transform, "Title", "NERFED", 200, FontStyles.Bold);
-        Place(title.rectTransform, new Vector2(0.5f, 0.6f), new Vector2(1600, 320));
-        title.color = new Color(0.98f, 0.62f, 0.18f);   // portocaliu cald, din paleta jocului
-        title.characterSpacing = 8f;
+        // numele jocului (fereastra / build-ul)
+        PlayerSettings.productName = GameName;
 
-        // subtitlul / tema, mic sub titlu
-        var sub = CreateText(canvasGo.transform, "Subtitle", "a game that patches you back", 38, FontStyles.Italic);
-        Place(sub.rectTransform, new Vector2(0.5f, 0.45f), new Vector2(1200, 70));
-        sub.color = new Color(0.45f, 0.85f, 0.9f, 0.85f); // accent cyan
+        // logo-ul (fara motto), care pluteste usor
+        var logoGo = new GameObject("Logo");
+        logoGo.transform.SetParent(canvasGo.transform, false);
+        var logo = logoGo.AddComponent<Image>();
+        logo.sprite = LogoSprite();
+        logo.preserveAspect = true;
+        logo.raycastTarget = false;
+        Place(logo.rectTransform, new Vector2(0.5f, 0.56f), new Vector2(1500, 520));
+        var bob = logoGo.AddComponent<PromptWobble>();
+        bob.swayAngle = 1.2f;
+        bob.bob = 10f;
+        if (logo.sprite == null)
+        {
+            // fara imagine: macar numele, scris
+            Object.DestroyImmediate(logoGo);
+            var title = CreateText(canvasGo.transform, "Title", GameName, 150, FontStyles.Bold);
+            Place(title.rectTransform, new Vector2(0.5f, 0.58f), new Vector2(1700, 320));
+            title.color = new Color(0.98f, 0.62f, 0.18f);
+        }
 
         // "press anything to continue", mic, faded, pulseaza din script
         var press = CreateText(canvasGo.transform, "PressAnything", "press anything to continue", 36, FontStyles.Normal);
@@ -95,8 +107,28 @@ public static class TitleScreenBuilder
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("[NERFED] Title screen construit: " + ScenePath +
+        Debug.Log("[Mochini] Title screen construit: " + ScenePath +
                   "   |   Play -> apasa orice tasta. Tutorial/OpenWorld nu exista inca, deci da doar un warning.");
+    }
+
+    public const string GameName = "Mochini Bouncelini";
+    const string LogoPath = "Assets/_Game/Art/UI/Logo_MochiniBouncelini.png";
+
+    /// <summary>Logo-ul ca Sprite (seteaza singur importul: sprite, transparenta, fara mipmap-uri).</summary>
+    static Sprite LogoSprite()
+    {
+        var importer = AssetImporter.GetAtPath(LogoPath) as TextureImporter;
+        if (importer == null) { Debug.LogWarning("[Mochini] Lipseste logo-ul: " + LogoPath); return null; }
+        if (importer.textureType != TextureImporterType.Sprite || importer.mipmapEnabled)
+        {
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = false;
+            importer.maxTextureSize = 2048;
+            importer.SaveAndReimport();
+        }
+        return AssetDatabase.LoadAssetAtPath<Sprite>(LogoPath);
     }
 
     static TextMeshProUGUI CreateText(Transform parent, string name, string text, float size, FontStyles style)

@@ -6,6 +6,8 @@ using UnityEngine.InputSystem;
 /// Standul de la inceputul nivelului: cand mochi-ul ajunge prima oara langa el, personajul ii vorbeste
 /// (discutie -> scop, ca pe tabla). Dupa aceea, "E - talk" il face sa repete.
 /// La finalul discutiei, scopul apare ca obiectiv sus-stanga.
+/// In camerele rotative, Q/E rotesc lumea, deci acolo vorbesti cu S / sageata jos / Enter (E ramane doar in 2D).
+/// Distanta se masoara pe ecran (ca in Fez), din orice unghi.
 /// </summary>
 public class NpcStand : MonoBehaviour
 {
@@ -20,7 +22,7 @@ public class NpcStand : MonoBehaviour
 
     void Start()
     {
-        var mochi = FindFirstObjectByType<MochiController>();
+        var mochi = FindAnyObjectByType<MochiController>();
         if (mochi != null) player = mochi.transform;
         if (talkPrompt != null) talkPrompt.gameObject.SetActive(false);
     }
@@ -28,8 +30,9 @@ public class NpcStand : MonoBehaviour
     void Update()
     {
         if (player == null || DialogueUI.IsOpen || DialogueUI.JustClosed) return;
+        if (Time.timeScale < 0.99f || FezRotator.Locked) return;   // rotire, incetinirea REVERT-ului, lupta
 
-        Vector3 d = player.position - transform.position;
+        Vector3 d = (Vector2)player.position - FezRoom.Screen(transform.position);
         bool near = Mathf.Abs(d.x) <= talkRadius && Mathf.Abs(d.y) < 3f;
         if (talkPrompt != null) talkPrompt.gameObject.SetActive(near && talked);
         if (!near) return;
@@ -38,7 +41,10 @@ public class NpcStand : MonoBehaviour
 
         var kb = Keyboard.current;
         var pad = Gamepad.current;
-        if ((kb != null && kb.eKey.wasPressedThisFrame) || (pad != null && pad.buttonNorth.wasPressedThisFrame))
+        bool fez = FezRoom.Active != null;
+        bool key = kb != null && ((!fez && kb.eKey.wasPressedThisFrame) || kb.sKey.wasPressedThisFrame
+                                  || kb.downArrowKey.wasPressedThisFrame || kb.enterKey.wasPressedThisFrame);
+        if (key || (pad != null && pad.buttonNorth.wasPressedThisFrame))
             Talk();
     }
 

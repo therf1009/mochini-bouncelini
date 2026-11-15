@@ -8,8 +8,9 @@ using UnityEngine.InputSystem;
 ///
 /// Regulile din documentul de design:
 ///  - timpul se opreste pe durata rotirii (tween de 0.4 s)
-///  - mochi-ul isi pastreaza pozitia pe ecran, nu in lume
-///  - daca dupa rotire ar ramane intr-un bloc, e impins in cel mai apropiat loc liber, pe verticala intai
+///  - ca in Fez: mochi-ul isi pastreaza pozitia IN LUME. Daca stai pe un bloc, dupa rotire stai tot pe el
+///    (doar ca blocul e acum in alt loc pe ecran)
+///  - daca dupa rotire ai intra intr-un bloc, rotirea se refuza (tresarire mica + evenimentul Denied)
 ///  - viteza verticala ramane, cea orizontala se reseteaza (altfel rotirea devine exploit de viteza)
 ///  - cooldown de 1 secunda, ca rotirea sa nu fie buton de panica
 /// </summary>
@@ -21,7 +22,12 @@ public class FezRotator : MonoBehaviour
     public Transform[] hideWhenRotated;
 
     public float tweenTime = 0.4f;
-    public float cooldown = 1f;
+    public float cooldown = 0.6f;
+
+    /// <summary>Rotatorul din scena (unul pe scena).</summary>
+    public static FezRotator Active { get; private set; }
+    /// <summary>Blocheaza rotirea (ex. in timpul unei scene cinematice).</summary>
+    public static bool Locked;
 
     int angle;
     float yaw;
@@ -35,6 +41,9 @@ public class FezRotator : MonoBehaviour
 
     public event System.Action<int> AngleChanged;
 
+    void Awake() { Active = this; Locked = false; }
+    void OnDestroy() { if (Active == this) Active = null; }
+
     void Start()
     {
         if (hideWhenRotated != null)
@@ -42,20 +51,88 @@ public class FezRotator : MonoBehaviour
                 if (t != null) hidden.AddRange(t.GetComponentsInChildren<Renderer>(true));
 
         var respawn = player != null ? player.GetComponent<Respawn2D>() : null;
-        if (respawn != null) respawn.Respawned += () => SnapTo(0);   // checkpoint-urile sunt la unghiul 0
+        if (respawn != null) respawn.Respawned += () => OnRespawn(respawn);
+    }
+
+    /// <summary>La respawn: revii la unghiul si la pozitia 3D a checkpoint-ului (FezCheckpoint), altfel la unghiul 0.</summary>
+    void OnRespawn(Respawn2D respawn)
+    {
+        if (!respawn.hasWorldCheckpoint || room == null) { SnapTo(0); return; }
+        SnapTo(respawn.checkpointAngle);
+        Vector3 w = respawn.checkpointWorld;
+        MoveTo(room.ToPhysics(w, angle));
+        if (view == null) view = player.GetComponent<FezMochiView>();
+        if (view != null) view.depth = room.DepthOf(w, angle);
+        Physics2D.SyncTransforms();
+        PushOutOfBlocks();
+    }
+
+    void OnDisable()
+    {
+        if (rotating) { Time.timeScale = 1f; rotating = false; }
     }
 
     void Update()
     {
-        if (rotating || room == null || player == null) return;
+        if (rotating || room == null || player == null || Locked) return;
+        if (Time.timeScale == 0f || DialogueUI.IsOpen || DialogueUI.JustClosed) return;   // nu rotesti in dialog
 
         int dir = ReadDirection();
         if (dir == 0) return;
         if (Time.unscaledTime - lastRotateTime < cooldown) return;
         if (!room.ContainsU(player.position.x, 0.4f)) return;   // rotesti doar in camera rotativa
 
-        StartCoroutine(Rotate(dir));
+        // unde ajunge mochi dupa rotire: aceeasi pozitie 3D, vazuta din noul unghi
+        int target = (angle + dir + 4) % 4;
+        Vector3 world = TargetWorldPosition();
+        Vector2 after = new Vector2(room.ToPhysics(world, target).x, player.position.y);
+        if (room.Overlaps(target, after, PlayerRadius() * 0.9f))
+        {
+            // ai intra intr-un bloc: nu rotesti (o tresarire mica, ca sa simti ca lumea "nu vrea")
+            lastRotateTime = Time.unscaledTime - cooldown + 0.25f;
+            CameraShake.Shake(0.06f);
+            Denied?.Invoke(dir);
+            return;
+        }
+
+        StartCoroutine(Rotate(dir, world));
     }
+
+    /// <summary>Rotirea a fost refuzata (te-ar fi bagat intr-un bloc). Parametrul = directia ceruta.</summary>
+    public event System.Action<int> Denied;
+
+    float PlayerRadius()
+    {
+        var c = player.GetComponent<CircleCollider2D>();
+        return c != null ? c.radius : 0.5f;
+    }
+
+    /// <summary>Pozitia 3D a mochi-ului. Daca sta pe un bloc, il tinem deasupra blocului (nu pe margine),
+    /// ca dupa rotire sa fie tot pe el - ca in Fez, pleci cu tot cu platforma.</summary>
+    Vector3 TargetWorldPosition()
+    {
+        if (view == null) view = player.GetComponent<FezMochiView>();
+        if (view == null)
+            return room.ToWorld(player.position.x, player.position.y, 0f, angle * 90f);
+
+        Vector3 world = view.WorldPosition();
+        if (view.Platform != null)
+        {
+            // pe o platforma pe sina: ramai deasupra ei dupa rotire
+            Vector3 c = view.Platform.Center, half = view.Platform.Size * 0.5f;
+            world.x = Mathf.Clamp(world.x, c.x - half.x + 0.1f, c.x + half.x - 0.1f);
+            world.z = Mathf.Clamp(world.z, c.z - half.z + 0.1f, c.z + half.z - 0.1f);
+        }
+        else if (view.HasSupport)
+        {
+            Vector3Int c = view.SupportCell;
+            world.x = Mathf.Clamp(world.x, c.x + 0.1f, c.x + 0.9f);
+            world.z = Mathf.Clamp(world.z, c.z + 0.1f, c.z + 0.9f);
+        }
+        return world;
+    }
+
+    FezMochiView view;
 
     static int ReadDirection()
     {
@@ -66,7 +143,7 @@ public class FezRotator : MonoBehaviour
         return 0;
     }
 
-    IEnumerator Rotate(int dir)
+    IEnumerator Rotate(int dir, Vector3 world)
     {
         rotating = true;
         lastRotateTime = Time.unscaledTime;
@@ -74,6 +151,9 @@ public class FezRotator : MonoBehaviour
         Time.timeScale = 0f;
 
         int target = (angle + dir + 4) % 4;
+        // mochi sta pe loc in lume (pe blocul lui) cat se roteste camera
+        if (view != null) view.depth = room.DepthOf(world, angle);
+        MoveTo(new Vector2(room.ToPhysics(world, angle).x, player.position.y));
         float fromYaw = angle * 90f;
         float toYaw = fromYaw + dir * 90f;
         if (target != 0) SetHidden(true);   // coridorul dispare inainte sa se roteasca in cadru
@@ -89,8 +169,12 @@ public class FezRotator : MonoBehaviour
         room.SetAngle(angle);
         SetHidden(angle != 0);
 
+        // aceeasi pozitie 3D, citita din noul unghi: alta coloana pe ecran, alta adancime, acelasi bloc sub picioare
+        MoveTo(new Vector2(room.ToPhysics(world, angle).x, player.position.y));
+        if (view != null) view.depth = room.DepthOf(world, angle);
+
         Physics2D.SyncTransforms();
-        PushOutOfBlocks();
+        PushOutOfBlocks();   // plasa de siguranta (nu ar trebui sa mai fie nevoie: rotirea se refuza inainte)
         player.linearVelocity = new Vector2(0f, player.linearVelocity.y);
 
         Time.timeScale = previousScale;

@@ -4,7 +4,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 /// <summary>
-/// Meniu: NERFED > Add Portals To Open World.
+/// Meniu: Mochini Bouncelini > Add Portals To Open World.
 /// Deschide OpenWorld.unity, pune cate un portal pe fiecare PortalSpot_N si
 /// adauga AbilityLoader si OverworldSpawn pe mochi. Se poate rula de mai multe ori: inlocuieste portalurile vechi.
 /// </summary>
@@ -18,13 +18,13 @@ public static class OverworldPortalsBuilder
         "E   -   LEVEL 3\nthe end"
     };
 
-    [MenuItem("NERFED/Add Portals To Open World")]
+    [MenuItem("Mochini Bouncelini/Add Portals To Open World")]
     public static void Build()
     {
         string path = OverworldBuilder.ScenePath;
         if (!System.IO.File.Exists(path))
         {
-            Debug.LogError("[NERFED] Nu exista " + path + ". Ruleaza intai NERFED > Build Open World.");
+            Debug.LogError("[Mochini] Nu exista " + path + ". Ruleaza intai Mochini Bouncelini > Build Open World.");
             return;
         }
         if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -39,7 +39,7 @@ public static class OverworldPortalsBuilder
             var spot = GameObject.Find("PortalSpot_" + i);
             if (spot == null)
             {
-                Debug.LogError("[NERFED] Lipseste PortalSpot_" + i + ". Reconstruieste open world-ul.");
+                Debug.LogError("[Mochini] Lipseste PortalSpot_" + i + ". Reconstruieste open world-ul.");
                 continue;
             }
 
@@ -73,6 +73,6 @@ public static class OverworldPortalsBuilder
 
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene);
-        Debug.Log("[NERFED] Portaluri adaugate in open world. Testeaza blocajele cu NERFED > Debug.");
+        Debug.Log("[Mochini] Portaluri adaugate in open world. Testeaza blocajele cu Mochini Bouncelini > Debug.");
     }
 }

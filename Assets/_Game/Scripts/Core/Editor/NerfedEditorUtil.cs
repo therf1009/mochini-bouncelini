@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 
 /// <summary>
-/// Unelte comune pentru builderele din meniul NERFED: materiale, scene in build, primitive.
+/// Unelte comune pentru builderele din meniul Mochini Bouncelini: materiale, scene in build, primitive.
 /// </summary>
 public static class NerfedEditorUtil
 {
@@ -95,6 +95,9 @@ public static class NerfedEditorUtil
         t.fontStyle = style;
         t.color = color;
         t.alignment = TextAlignmentOptions.Center;
+        // textul nu arunca umbre (altfel dreptunghiul lui intuneca ce e in spate, ex. mochi)
+        var mr = textGo.GetComponent<MeshRenderer>();
+        if (mr != null) { mr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off; mr.receiveShadows = false; }
         return t;
     }
 }

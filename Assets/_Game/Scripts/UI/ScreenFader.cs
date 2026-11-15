@@ -62,10 +62,11 @@ public class ScreenFader : MonoBehaviour
         {
             var op = SceneManager.LoadSceneAsync(scene);
             while (!op.isDone) yield return null;
+            Time.timeScale = 1f;   // scena noua porneste mereu cu timpul normal (nimic nu ramane oprit / incetinit)
         }
         else
         {
-            Debug.LogWarning("[NERFED] Scena '" + scene + "' nu exista inca in Build Settings.");
+            Debug.LogWarning("[Mochini] Scena '" + scene + "' nu exista inca in Build Settings.");
         }
 
         yield return Fade(1f, 0f, duration);

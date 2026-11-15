@@ -25,13 +25,13 @@ public class PatchTurret : PatchSource
     void Update()
     {
         if (dead || player == null || Time.deltaTime <= 0f) return;
-        if (Vector2.Distance(player.position, transform.position) > range) return;
+        if (Vector2.Distance(player.position, ScreenPosition) > range) return;
 
         timer -= Time.deltaTime;
         if (timer > 0f) return;
         timer = fireInterval;
 
-        Vector2 from = muzzle != null ? (Vector2)muzzle.position : (Vector2)transform.position;
+        Vector2 from = muzzle != null ? FezRoom.Screen(muzzle.position) : ScreenPosition;
         Fire(from, player.position, projectileSpeed);
     }
 

@@ -5,7 +5,7 @@ using UnityEngine;
 /// DIRECTOR.exe - boss-ul final: un robotel cu ecran in loc de fata, care pluteste deasupra arenei (acoperisul
 /// serverului). Cand mochi pune piciorul in arena, se "porneste": rotirea lumii se blocheaza ("firewall") si incepe lupta.
 ///
-/// Singurul mod de a-l lovi: patch-urile lui, trimise inapoi cu scutul Bounce Back (F tinut). Sase lovituri, trei faze:
+/// Singurul mod de a-l lovi: patch-urile lui, trimise inapoi cu parry-ul Bounce Back (click, chiar inainte sa te loveasca). Sase lovituri, trei faze:
 ///   faza 1 - un patch tintit, din cand in cand;
 ///   faza 2 - evantai de trei patch-uri si se plimba mai repede de colo-colo;
 ///   faza 3 - rafale + "unde de date" pe podea: pe alea scutul NU le opreste, sari peste ele (sau lipeste-te de perete).
@@ -97,8 +97,8 @@ public class DirectorBoss : PatchSource
         active = true;
         FezRotator.Locked = true;
         PatchNoteUI.Show("PATCH 1.2.0  -  FINAL", "DIRECTOR.exe is now live.", "Rotation disabled by firewall.");
-        PatchNoteUI.SetGoal("bounce the patches back   (hold F)");
-        BigBanner.Show("PATCH 1.2.0  -  FINAL", "DIRECTOR.exe", "hold F", 2.2f);
+        PatchNoteUI.SetGoal("click right before a patch hits you");
+        BigBanner.Show("PATCH 1.2.0  -  FINAL", "DIRECTOR.exe", "CLICK  =  parry", 2.2f);
         CameraShake.Shake(0.3f);
     }
 

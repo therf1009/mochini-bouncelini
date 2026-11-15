@@ -167,6 +167,7 @@ public static class TestRoomBuilder
         visual.GetComponent<MeshRenderer>().sharedMaterial = mat;
         Object.DestroyImmediate(visual.GetComponent<SphereCollider>());
 
+        go.AddComponent<MochiSkin>().body = visual.GetComponent<Renderer>();   // skin-ul ales in garderoba
         var ctrl = go.AddComponent<MochiController>();
         ctrl.visual = visual.transform;
     }

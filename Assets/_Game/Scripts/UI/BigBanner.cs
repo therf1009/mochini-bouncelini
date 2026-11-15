@@ -52,6 +52,9 @@ public class BigBanner : MonoBehaviour
 
         b.header = Text(b.box, "Header", new Vector2(0f, 105f), 40f, new Color(1f, 0.78f, 0.35f), FontStyles.Bold);
         b.title = Text(b.box, "Title", new Vector2(0f, 15f), 96f, Color.white, FontStyles.Bold);
+        // textele lungi se micsoreaza singure, nu ies din banner
+        b.title.enableAutoSizing = true; b.title.fontSizeMax = 96f; b.title.fontSizeMin = 48f;
+        b.header.enableAutoSizing = true; b.header.fontSizeMax = 40f; b.header.fontSizeMin = 24f;
 
         b.keyBox = new GameObject("Key").AddComponent<RectTransform>();
         b.keyBox.SetParent(b.box, false);
@@ -85,6 +88,13 @@ public class BigBanner : MonoBehaviour
         title.text = t;
         key.text = k;
         keyBox.gameObject.SetActive(!string.IsNullOrEmpty(k));
+        // cutia tastei se potriveste dupa text, cu margini (si nu iese din banner)
+        float w = Mathf.Clamp(key.GetPreferredValues(k).x + 70f, 260f, 1100f);
+        keyBox.sizeDelta = new Vector2(w, 70f);
+        key.rectTransform.sizeDelta = new Vector2(w - 30f, 64f);
+        key.enableAutoSizing = true;
+        key.fontSizeMax = 44f;
+        key.fontSizeMin = 24f;
 
         for (float x = 0f; x < 0.35f; x += Time.unscaledDeltaTime)
         {

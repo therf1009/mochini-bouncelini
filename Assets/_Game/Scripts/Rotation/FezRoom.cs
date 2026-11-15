@@ -177,6 +177,34 @@ public class FezRoom : MonoBehaviour
         if (leftBoundary != null) leftBoundary.SetActive(angle != 0 || leftBoundaryAlways);
     }
 
+    HashSet<Vector3Int> solidSet;
+
+    /// <summary>E celula (i, j, k) un bloc solid al camerei?</summary>
+    public bool IsSolidCell(Vector3Int c)
+    {
+        if (solidSet == null) solidSet = new HashSet<Vector3Int>(solidCells);
+        return solidSet.Contains(c);
+    }
+
+    /// <summary>Platforma din care face parte o celula: blocurile solide lipite de ea (pe i si k), la aceeasi inaltime,
+    /// cu loc liber deasupra. Prima e celula de start.</summary>
+    public List<Vector3Int> PlatformCells(Vector3Int start, int max)
+    {
+        var result = new List<Vector3Int>();
+        var seen = new HashSet<Vector3Int> { start };
+        var queue = new Queue<Vector3Int>();
+        queue.Enqueue(start);
+        while (queue.Count > 0 && result.Count < max)
+        {
+            var c = queue.Dequeue();
+            if (!IsSolidCell(c)) continue;
+            if (!IsSolidCell(c + Vector3Int.up)) result.Add(c);
+            foreach (var d in new[] { Vector3Int.left, Vector3Int.right, new Vector3Int(0, 0, 1), new Vector3Int(0, 0, -1) })
+                if (seen.Add(c + d)) queue.Enqueue(c + d);
+        }
+        return result;
+    }
+
     /// <summary>Opreste / porneste toata fizica camerei (finalul jocului: lumea dispare de sub mochi).</summary>
     public void SetPhysicsEnabled(bool on)
     {

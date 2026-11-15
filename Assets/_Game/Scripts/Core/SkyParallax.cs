@@ -12,6 +12,7 @@ public class SkyParallax : MonoBehaviour
     [Tooltip("Cat aluneca lateral la o rotire de 90 de grade.")]
     public float shiftPerTurn = 7f;
     public float wrapHeight = 24f;
+    public float wrapWidth = 40f;
     public float drift = 0.15f;      // pluteste foarte incet si singur
 
     Transform[] items;
@@ -41,7 +42,7 @@ public class SkyParallax : MonoBehaviour
             float x = basePos[i].x - yaw / 90f * shiftPerTurn * speed + Mathf.Sin(Time.time * drift + i) * 0.4f;
             float y = basePos[i].y - camY * verticalFactor * speed;
             y = Mathf.Repeat(y + wrapHeight * 0.5f, wrapHeight) - wrapHeight * 0.5f;
-            x = Mathf.Repeat(x + 20f, 40f) - 20f;
+            x = Mathf.Repeat(x + wrapWidth * 0.5f, wrapWidth) - wrapWidth * 0.5f;
             items[i].localPosition = new Vector3(x, y, basePos[i].z);
         }
     }

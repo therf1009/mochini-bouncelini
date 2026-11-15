@@ -85,8 +85,7 @@ public class FezRotator : MonoBehaviour
         // unde ajunge mochi dupa rotire: aceeasi pozitie 3D, vazuta din noul unghi
         int target = (angle + dir + 4) % 4;
         Vector3 world = TargetWorldPosition();
-        Vector2 after = new Vector2(room.ToPhysics(world, target).x, player.position.y);
-        if (room.Overlaps(target, after, PlayerRadius() * 0.9f))
+        if (!SafeWorldPosition(target, ref world))
         {
             // ai intra intr-un bloc: nu rotesti (o tresarire mica, ca sa simti ca lumea "nu vrea")
             lastRotateTime = Time.unscaledTime - cooldown + 0.25f;
@@ -96,6 +95,55 @@ public class FezRotator : MonoBehaviour
         }
 
         StartCoroutine(Rotate(dir, world));
+    }
+
+    bool FreeAt(int target, Vector3 world) =>
+        !room.Overlaps(target, new Vector2(room.ToPhysics(world, target).x, player.position.y), PlayerRadius() * 0.9f);
+
+    /// <summary>
+    /// Unde poate sta mochi dupa rotire fara sa fie intr-un bloc. Regula: RAMAI PE PLATFORMA TA.
+    ///  1) acelasi loc 3D, daca e liber;
+    ///  2) pe sol: cel mai apropiat bloc liber DE PE ACEEASI PLATFORMA (blocurile lipite de cel pe care stai, la aceeasi inaltime);
+    ///     mochi aluneca acolo cat dureaza rotirea;
+    ///  3) pe o platforma pe sina: alt punct de pe ea;
+    ///  in aer: doar acelasi loc (o deplasare ar putea trece prin pereti subtiri).
+    /// Daca nimic nu e liber, rotirea se refuza (nu te bagam niciodata intr-un bloc si nu te dam jos de pe platforma).
+    /// </summary>
+    bool SafeWorldPosition(int target, ref Vector3 world)
+    {
+        if (FreeAt(target, world)) return true;
+        Vector3 start = world;
+
+        if (view != null && view.Platform != null)
+        {
+            Vector3 c = view.Platform.Center, half = view.Platform.Size * 0.5f;
+            Vector3 best = world; float bestD = float.MaxValue;
+            for (float x = -half.x + 0.3f; x <= half.x - 0.3f + 1e-3f; x += 0.25f)
+                for (float z = -half.z + 0.3f; z <= half.z - 0.3f + 1e-3f; z += 0.25f)
+                {
+                    var p = new Vector3(c.x + x, world.y, c.z + z);
+                    float d = (p - start).sqrMagnitude;
+                    if (d < bestD && FreeAt(target, p)) { best = p; bestD = d; }
+                }
+            if (bestD < float.MaxValue) { world = best; return true; }
+            return false;
+        }
+
+        if (view != null && view.HasSupport)
+        {
+            Vector3Int bestCell = default; float bestD = float.MaxValue;
+            foreach (var cell in room.PlatformCells(view.SupportCell, 64))
+            {
+                var p = new Vector3(cell.x + 0.5f, world.y, cell.z + 0.5f);
+                float d = (p - start).sqrMagnitude;
+                if (d < bestD && FreeAt(target, p)) { bestCell = cell; bestD = d; }
+            }
+            if (bestD < float.MaxValue) { world = new Vector3(bestCell.x + 0.5f, world.y, bestCell.z + 0.5f); return true; }
+            return false;
+        }
+
+        // in aer nu mutam nimic: o deplasare ar putea trece prin pereti subtiri (ex. usa glitch a altarului)
+        return false;
     }
 
     /// <summary>Rotirea a fost refuzata (te-ar fi bagat intr-un bloc). Parametrul = directia ceruta.</summary>

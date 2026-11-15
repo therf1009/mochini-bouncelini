@@ -2,12 +2,11 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// <summary>
-/// Bounce Back, refacut ca SCUT (abilitatea existenta a nivelului 3, pastrata in fond: patch-urile se intorc
-/// la cel care le-a aruncat si il lovesc). Acum e defensiv:
-///  - tii F (sau K, ori X pe gamepad): in jurul lui mochi apare o bula;
-///  - orice patch care atinge bula e trimis inapoi, automat, mai repede;
-///  - bula consuma energie cat o tii (maxim ~1.4 s); goala, are nevoie de o pauza ca sa se reincarce;
-///  - "parry": daca ridici scutul chiar inainte sa te loveasca (primele 0.2 s), patch-ul pleaca si mai tare.
+/// Bounce Back, ca PARRY (abilitatea de la nivelul 3; in fond aceeasi: patch-urile se intorc la cine le-a aruncat).
+///  - CLICK (stanga; sau X pe gamepad): o bula apare in jurul lui mochi pentru o clipa (activeWindow);
+///  - orice patch care atinge bula in clipa aia e trimis inapoi; daca l-ai prins chiar la inceput ("perfect"),
+///    pleaca si mai tare si scutul se reincarca imediat;
+///  - dupa fiecare click urmeaza o mica pauza (cooldown): nu merge sa tot apesi.
 /// Fara scut, un patch te impinge (nu te omoara). Tema jam-ului, la propriu: BOUNCE BACK.
 /// Se deblocheaza din tokenul REVERT (mesajul OnAbilityUnlocked).
 /// </summary>
@@ -16,27 +15,23 @@ public class BounceBack : MonoBehaviour
 {
     public bool unlocked;
     public float radius = 1.35f;
-    public float maxEnergy = 1.4f;        // secunde de scut
-    public float rechargeRate = 0.8f;     // energie pe secunda cand nu-l tii
-    public float emptyPause = 0.6f;       // dupa ce l-ai golit, atata nu se reincarca
-    public float parryWindow = 0.2f;
+    public float activeWindow = 0.3f;     // cat sta bula ridicata dupa click
+    public float perfectWindow = 0.12f;   // prins in primele 0.12 s = parry perfect
+    public float cooldown = 0.45f;        // dupa fereastra, atat pana poti da iar click
     public Color color = new Color(0.40f, 0.90f, 1f);
 
-    float energy, emptyTimer, upTime, flash;
-    bool up;
+    float upTimer, cooldownTimer, flash, sinceClick;
+    bool perfectHit;
     MochiController mochi;
     Transform bubble;
     Renderer bubbleRenderer;
 
-    /// <summary>Scutul e ridicat acum?</summary>
-    public bool IsUp => up;
-    public float Energy01 => energy / maxEnergy;
+    /// <summary>Bula e ridicata acum?</summary>
+    public bool IsUp => upTimer > 0f;
+    /// <summary>0..1: cat de gata e scutul (1 = poti da click).</summary>
+    public float Ready01 => cooldownTimer <= 0f && upTimer <= 0f ? 1f : 0f;
 
-    void Awake()
-    {
-        mochi = GetComponent<MochiController>();
-        energy = maxEnergy;
-    }
+    void Awake() => mochi = GetComponent<MochiController>();
 
     void OnAbilityUnlocked(Ability ability)
     {
@@ -45,24 +40,25 @@ public class BounceBack : MonoBehaviour
 
     void Update()
     {
-        if (!unlocked || Time.timeScale == 0f) { SetUp(false); return; }
+        if (!unlocked || Time.timeScale == 0f) return;
         float dt = Time.deltaTime;
 
-        bool held = Held() && emptyTimer <= 0f && energy > 0f;
-        SetUp(held);
-
-        if (up)
+        if (upTimer > 0f)
         {
-            upTime += dt;
-            energy -= dt;
-            if (energy <= 0f) { energy = 0f; emptyTimer = emptyPause; SetUp(false); }
+            upTimer -= dt;
+            sinceClick += dt;
             ReflectNearby();
+            if (upTimer <= 0f) cooldownTimer = perfectHit ? 0.05f : cooldown;   // parry perfect: gata imediat
         }
-        else
+        else if (cooldownTimer > 0f) cooldownTimer -= dt;
+        else if (Clicked())
         {
-            upTime = 0f;
-            if (emptyTimer > 0f) emptyTimer -= dt;
-            else energy = Mathf.Min(maxEnergy, energy + rechargeRate * dt);
+            upTimer = activeWindow;
+            sinceClick = 0f;
+            perfectHit = false;
+            EnsureBubble();
+            bubble.localScale = Vector3.one * 0.4f;
+            ReflectNearby();
         }
         flash = Mathf.Max(0f, flash - dt * 4f);
     }
@@ -79,29 +75,22 @@ public class BounceBack : MonoBehaviour
         }
     }
 
-    /// <summary>Apelat de patch cand ajunge la mochi: daca scutul e sus, il trimite inapoi in loc sa loveasca.</summary>
+    /// <summary>Apelat de patch cand ajunge la mochi: daca bula e ridicata, il trimite inapoi in loc sa loveasca.</summary>
     public bool TryBlock(PatchProjectile p)
     {
-        if (!up || p.unblockable) return false;
+        if (upTimer <= 0f || p.unblockable) return false;
         Block(p);
         return true;
     }
 
     void Block(PatchProjectile p)
     {
-        bool parry = upTime <= parryWindow;
-        p.Reflect(parry ? 2.2f : 1.6f);
+        bool perfect = sinceClick <= perfectWindow;
+        if (perfect) perfectHit = true;
+        p.Reflect(perfect ? 2.2f : 1.6f);
         flash = 1f;
-        energy = Mathf.Min(maxEnergy, energy + (parry ? 0.4f : 0.1f));   // parry-ul te rasplateste cu energie
-        CameraShake.Shake(parry ? 0.3f : 0.18f);
-        Fx.Burst(FezRoom.World(p.ScreenPosition), parry ? Color.white : color, parry ? 22 : 10, parry ? 7f : 4f, 0.13f, 2f);
-    }
-
-    void SetUp(bool on)
-    {
-        if (up == on) return;
-        up = on;
-        if (on) { EnsureBubble(); bubble.localScale = Vector3.one * 0.3f; }
+        CameraShake.Shake(perfect ? 0.3f : 0.18f);
+        Fx.Burst(FezRoom.World(p.ScreenPosition), perfect ? Color.white : color, perfect ? 22 : 10, perfect ? 7f : 4f, 0.13f, 2f);
     }
 
     void EnsureBubble()
@@ -119,28 +108,27 @@ public class BounceBack : MonoBehaviour
     void UpdateBubble()
     {
         if (bubble == null) return;
-        bubble.gameObject.SetActive(up || flash > 0f);
-        if (!bubble.gameObject.activeSelf) return;
+        bool show = upTimer > 0f || flash > 0f;
+        bubble.gameObject.SetActive(show);
+        if (!show) return;
 
         Vector3 center = mochi.visual != null ? mochi.visual.position : transform.position;
         bubble.position = center;
-        float target = radius * 2f * (1f + 0.04f * Mathf.Sin(Time.time * 12f)) * (1f + 0.12f * flash);
-        bubble.localScale = Vector3.Lerp(bubble.localScale, Vector3.one * target, 1f - Mathf.Exp(-25f * Time.unscaledDeltaTime));
-
-        // cu cat mai putina energie, cu atat bula e mai stearsa si palpaie
-        float e = Energy01;
-        float a = Mathf.Lerp(0.12f, 0.38f, e) + 0.35f * flash;
-        if (e < 0.3f) a *= 0.6f + 0.4f * Mathf.Abs(Mathf.Sin(Time.time * 30f));
+        // apare cu un "pop", apoi se stinge pe masura ce trece fereastra
+        float life = activeWindow > 0f ? Mathf.Clamp01(upTimer / activeWindow) : 0f;
+        float target = radius * 2f * (1f + 0.1f * flash);
+        bubble.localScale = Vector3.Lerp(bubble.localScale, Vector3.one * target, 1f - Mathf.Exp(-40f * Time.unscaledDeltaTime));
+        float a = 0.12f + 0.3f * life + 0.35f * flash;
         Fx.SetColor(bubbleRenderer, new Color(Mathf.Lerp(color.r, 1f, flash), Mathf.Lerp(color.g, 1f, flash), color.b, a));
     }
 
-    static bool Held()
+    static bool Clicked()
     {
-        var kb = Keyboard.current;
+        var mouse = Mouse.current;
         var pad = Gamepad.current;
-        bool key = kb != null && (kb.fKey.isPressed || kb.kKey.isPressed);
-        bool button = pad != null && pad.buttonWest.isPressed;
-        return key || button;
+        bool click = mouse != null && mouse.leftButton.wasPressedThisFrame;
+        bool button = pad != null && pad.buttonWest.wasPressedThisFrame;
+        return click || button;
     }
 
     void OnDisable() { if (bubble != null) bubble.gameObject.SetActive(false); }

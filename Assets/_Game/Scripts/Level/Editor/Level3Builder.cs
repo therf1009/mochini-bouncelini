@@ -51,10 +51,10 @@ public static class Level3Builder
         S("Shaft2_Floor", 10, 11, -2, 1, 16, 16, "Panel"),
         S("Shaft2_WallL", 10, 11, -3, -3, 18, 27, "Rack"),
         S("Shaft2_WallR", 10, 11, 2, 2, 18, 27, "Rack"),
-        S("Ledge_2", 10, 11, 3, 5, 28, 28, "Gold"),
-        S("Arena", 0, 9, -5, 4, 30, 30, "Floor"),
-        S("Arena_WallL", -2, -1, -5, 4, 33, 40, "Rack"),
-        S("Arena_WallR", 10, 11, -5, 4, 33, 40, "Rack"),
+        S("Ledge_2", 12, 13, 3, 5, 28, 28, "Gold"),   // iese de sub arena, in dreapta
+        S("Arena", -2, 11, -7, 6, 30, 30, "Floor"),   // arena mare: 14 x 14
+        S("Arena_WallL", -4, -3, -7, 6, 33, 44, "Rack"),
+        S("Arena_WallR", 12, 13, -7, 6, 33, 44, "Rack"),
     };
 
     [MenuItem("Mochini Bouncelini/Levels/Build Level 3 (digital server)")]
@@ -62,7 +62,8 @@ public static class Level3Builder
     {
         if (!UnityEditor.SceneManagement.EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
         var t = Digital();
-        var c = Begin(t, -2, -7, 14, Pieces, new Vector3(1.5f, 1.55f, -4.5f), -6f);
+        // camera rotativa de 18 (acelasi centru ca turnul de 14), ca sa incapa arena mare de sus
+        var c = Begin(t, -4, -9, 18, Pieces, new Vector3(1.5f, 1.55f, -4.5f), -6f);
         c.player.AddComponent<BounceBack>();   // scutul, blocat pana la al doilea REVERT
 
         // ---- serverul (decor): corp cu circuite, dungi de neon pe muchii, beculete, cabluri
@@ -100,7 +101,7 @@ public static class Level3Builder
             "you made it to v1.2. the last build.",
             "the Director shipped itself as DIRECTOR.exe. it's up on the server roof, sealing everything.",
             "first REVERT is right here: WALL STICK. hold SPACE on a wall, let go to launch.",
-            "the second one is the old Bounce Back - now a shield. hold F and patches go home.",
+            "the second one is the old Bounce Back - now a parry. click right before a patch hits you and it goes home.",
             "...if you take the Director down, nobody balances this world anymore. i don't know what happens then.",
             "go anyway."
         }, "grab the REVERT, climb the server", new Color(0.55f, 0.78f, 0.62f));
@@ -109,20 +110,21 @@ public static class Level3Builder
             new[] { "Wall stick restored (hold SPACE on a wall).", "Let go to launch." },
             "climb the shaft. wall to wall.", "WALL STICK", "hold SPACE on a wall", new Color(0.35f, 0.95f, 1f));
         Revert(c, new Vector3(11f, 29.6f, 4.5f), Ability.Third, "PATCH 1.2.1  -  REVERTED",
-            new[] { "Bounce Back restored, as a shield (hold F).", "Patches return to sender." },
-            "the roof. DIRECTOR.exe.", "BOUNCE BACK SHIELD", "hold F", new Color(1f, 0.35f, 0.85f));
+            new[] { "Bounce Back restored, as a parry (click).", "Patches return to sender." },
+            "the roof. DIRECTOR.exe.", "BOUNCE BACK PARRY", "CLICK", new Color(1f, 0.35f, 0.85f));
 
         // ---- DIRECTOR.exe
         Material patchMat = NerfedEditorUtil.Mat("M_Patch", new Color(0.95f, 0.40f, 0.30f), unlit: true);
         Material reflectedMat = NerfedEditorUtil.Mat("M_PatchReflected", new Color(0.40f, 0.90f, 1.00f), unlit: true);
         Material hazardMat = NerfedEditorUtil.Mat("M_DataWave", new Color(1f, 0.25f, 0.65f), unlit: true);
-        var boss = Robot(c, new Vector3(5f, 35.5f, -1f));
+        var boss = Robot(c, new Vector3(5f, 38.5f, -1f));   // mai sus: arena are loc de manevra
         boss.projectileMat = patchMat;
         boss.reflectedMat = reflectedMat;
         boss.hazardMat = hazardMat;
         boss.activateY = 31f;
         boss.hitRadius = 1.4f;
         boss.projectileSpeed = 6f;
+        boss.sweepWidth = 5f;
 
         var ending = new GameObject("EndingSequence").AddComponent<EndingSequence>();
         ending.boss = boss;
@@ -140,9 +142,9 @@ public static class Level3Builder
         Prompt(c, "~ BUILD v1.2 ~", new Vector3(3f, 7.2f, -7.5f), 8f, -2f);
         Prompt(c, "hold SPACE on a wall,\nlet go to launch", new Vector3(1.5f, 9f, -8f), 3.8f, 2f);
         Prompt(c, "this shaft only exists\nfrom the side...", new Vector3(8f, 19f, -8f), 3.6f, -2f);
-        Prompt(c, "hold F  -  shield", new Vector3(10.5f, 31.5f, 6.5f), 4f, 2f);
+        Prompt(c, "CLICK  -  parry\n(right before it hits)", new Vector3(12.5f, 31.5f, 6.5f), 3.8f, 2f);
 
-        Finish(c, ScenePath, 4f, 37f, 7f);
+        Finish(c, ScenePath, 4f, 40f, 7.5f);
         Debug.Log("[Mochini] Level 3 (serverul digital) construit: " + ScenePath);
     }
 

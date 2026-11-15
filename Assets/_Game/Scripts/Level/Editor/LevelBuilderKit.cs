@@ -76,6 +76,7 @@ public static class LevelBuilderKit
         NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeR", visual.transform, new Vector3(0.17f, 0.12f, -0.45f), Vector3.one * 0.12f, eye, keepCollider: false);
 
         go.AddComponent<MochiController>().visual = visual.transform;
+        go.AddComponent<MochiSkin>().body = visual.GetComponent<Renderer>();   // skin-ul ales in garderoba
         go.AddComponent<Respawn2D>().killY = killY;
         go.AddComponent<AbilityLoader>();   // dash / double jump castigate deja in nivelurile anterioare
         return go;

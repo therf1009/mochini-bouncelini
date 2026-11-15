@@ -665,9 +665,9 @@ public static class FezLevelKit
 
     const string TexDir = "Assets/_Game/Art/Textures";
 
-    static Texture2D LoadTex(string name) => AssetDatabase.LoadAssetAtPath<Texture2D>(TexDir + "/" + name + ".asset");
+    public static Texture2D LoadTex(string name) => AssetDatabase.LoadAssetAtPath<Texture2D>(TexDir + "/" + name + ".asset");
 
-    static void SaveTex(Texture2D tex, string name)
+    public static void SaveTex(Texture2D tex, string name)
     {
         System.IO.Directory.CreateDirectory(TexDir);
         AssetDatabase.CreateAsset(tex, TexDir + "/" + name + ".asset");
@@ -687,7 +687,7 @@ public static class FezLevelKit
         return m;
     }
 
-    static Material TexMat(string name, Color color, Texture2D tex, Vector2 tiling, bool unlit = false)
+    public static Material TexMat(string name, Color color, Texture2D tex, Vector2 tiling, bool unlit = false)
     {
         Material m = NerfedEditorUtil.Mat(name, color, unlit);
         if (m.HasProperty("_BaseMap")) { m.SetTexture("_BaseMap", tex); m.SetTextureScale("_BaseMap", tiling); }
@@ -700,7 +700,7 @@ public static class FezLevelKit
     }
 
     /// <summary>Material transparent (shader-ul Mochini/UnlitAlpha) cu culoare fixa.</summary>
-    static Material FxMaterial(string name, Color color)
+    public static Material FxMaterial(string name, Color color)
     {
         string path = NerfedEditorUtil.MaterialsDir + "/" + name + ".mat";
         var m = AssetDatabase.LoadAssetAtPath<Material>(path);
@@ -719,7 +719,7 @@ public static class FezLevelKit
 
     static Material GlitchMat() => FxMaterial("M_Glitch", new Color(1f, 0.2f, 0.4f, 0.7f));
 
-    static Material ParticleMaterial(bool soft)
+    public static Material ParticleMaterial(bool soft)
     {
         Material m = FxMaterial(soft ? "M_ParticleSoft" : "M_ParticleSquare", Color.white);
         if (soft && m.HasProperty("_BaseMap")) m.SetTexture("_BaseMap", DotTexture());

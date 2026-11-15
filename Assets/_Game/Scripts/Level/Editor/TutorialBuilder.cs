@@ -235,6 +235,7 @@ public static class TutorialBuilder
         var visual = NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "Visual", go.transform,
             Vector3.zero, Vector3.one, mat, keepCollider: false);
 
+        go.AddComponent<MochiSkin>().body = visual.GetComponent<Renderer>();   // skin-ul ales in garderoba
         var ctrl = go.AddComponent<MochiController>();
         ctrl.visual = visual.transform;
 

@@ -212,6 +212,7 @@ public class OverworldController : MonoBehaviour
         // corpul e o minge: se rostogoleste exact cat a mers (unghi = distanta / raza)
         float speed = new Vector3(horizVel.x, 0f, horizVel.z).magnitude;
         roll += speed * dt / 0.5f * Mathf.Rad2Deg;
+        if (MochiSkins.CurrentIsImage) roll = 0f;   // cu o poza pe el nu se rostogoleste: fata ramane in fata
         bool idle = speed < 0.2f && cc.isGrounded;
         idleTime = idle ? idleTime + dt : 0f;
         float settle = Mathf.Clamp01(idleTime * 1.5f);

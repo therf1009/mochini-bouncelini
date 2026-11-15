@@ -40,12 +40,27 @@ public class FezCheckpoint : MonoBehaviour
         Vector2 me = FezRoom.Screen(transform.position + Vector3.up * 0.5f);
         if (Vector2.Distance(player.transform.position, me) > radius) return;
         int angle = FezRoom.Active != null ? FezRoom.Active.Angle : 0;
-        // salvam unde sta mochi acum (pe sol, deci intr-un loc sigur), nu felinarul: asa nu reapari intr-un bloc
+        // salvam blocul pe care sta mochi acum (pe sol, deci un loc sigur), nu felinarul: asa nu reapari intr-un bloc.
+        // Dar CENTRUL blocului, nu pozitia exacta: altfel, daca treceai pe langa felinar chiar pe muchie (ex. inainte de
+        // o saritura), reapareai pe muchie, alunecai si cadeai imediat (uneori in bucla).
         if (view != null && mochi != null)
         {
             if (!mochi.IsGrounded) return;
+            if (view.Platform != null) return;   // pe o platforma de pe sina nu salvam: pleaca de acolo
+            if (FezRoom.Active != null && !view.HasSupport) return;   // pe colt (centrul trecut de muchie): pastram salvarea de dinainte
             Vector3 w = view.WorldPosition() + Vector3.up * 0.05f;
-            player.SetFezCheckpoint((Vector2)player.transform.position + Vector2.up * 0.05f, w, angle);
+            Vector2 screen = (Vector2)player.transform.position + Vector2.up * 0.05f;
+            var room = FezRoom.Active;
+            if (view.HasSupport && room != null)
+            {
+                var cell = view.SupportCell;
+                // inaltimea din bloc (fata de sus + raza), nu cea de acum: pe colt mochi e putin scufundat
+                var centered = room.CellCenter(cell) + Vector3.up * 1.05f;
+                Vector2 cs = room.ToPhysics(centered, angle);
+                if (!room.Overlaps(angle, cs, 0.45f)) { w = centered; screen = cs; }
+                else if (player.hasWorldCheckpoint) return;   // centrul nu e liber din unghiul asta: pastram salvarea buna
+            }
+            player.SetFezCheckpoint(screen, w, angle);
         }
         else player.SetFezCheckpoint(me + Vector2.up * 0.1f, transform.position + Vector3.up * 0.6f, angle);
         if (!reached) { pop = 1f; CameraShake.Shake(0.05f); }

@@ -134,7 +134,9 @@ public static class FezLevelKit
     }
 
     /// <summary>Camera, cerul, particulele, ceata de adancime; salveaza scena si o pune in build.</summary>
-    public static void Finish(Ctx c, string scenePath, float minV, float maxV, float orthoSize = 6.5f)
+    /// <param name="minU">optional: camera urmareste si pe orizontala intre minU si maxU (ex. tutorialul, care e lat);
+    /// implicit sta centrata pe camera rotativa (turnurile din niveluri).</param>
+    public static void Finish(Ctx c, string scenePath, float minV, float maxV, float orthoSize = 6.5f, float minU = float.NaN, float maxU = float.NaN)
     {
         var body = c.player.GetComponent<Rigidbody2D>();
 
@@ -162,8 +164,8 @@ public static class FezLevelKit
         fezCam.target = body;
         fezCam.room = c.room;
         fezCam.rotator = rotator;
-        fezCam.minU = c.room.CenterU;
-        fezCam.maxU = c.room.CenterU;
+        fezCam.minU = float.IsNaN(minU) ? c.room.CenterU : minU;
+        fezCam.maxU = float.IsNaN(maxU) ? c.room.CenterU : maxU;
         fezCam.minV = minV;
         fezCam.maxV = maxV;
         fezCam.offset = new Vector2(0f, 1.5f);

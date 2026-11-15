@@ -33,6 +33,10 @@ public static class MochiSkins
 
     public static event System.Action Changed;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { cache = null; Changed = null; }
+
     public static List<Skin> All
     {
         get

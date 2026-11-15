@@ -7,6 +7,10 @@ public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance { get; private set; }
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { Instance = null; }
+
     [Header("Reglaje")]
     public float maxOffset = 0.35f;
     public float decay = 2.2f;

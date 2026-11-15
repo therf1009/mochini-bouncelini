@@ -14,6 +14,8 @@ public class EndingSequence : MonoBehaviour
 {
     public DirectorBoss boss;
     public Transform crumbleRoot;          // copiii lui dispar pe rand (arena, construita din blocuri de 1x1)
+    [Tooltip("Tot ce mai dispare odata cu lumea: felinare, texte, standuri, tokenuri. Gol = cauta singur obiectul 'Gameplay'.")]
+    public Transform[] alsoCrumble;
     public string titleScene = "TitleScreen";
     public float blockInterval = 0.12f;
 
@@ -50,8 +52,15 @@ public class EndingSequence : MonoBehaviour
         {
             // fiecare cub in parte (nu piesele intregi), de la cel mai departat spre mochi, in ~5 secunde
             Vector3 center = mochi != null && mochi.visual != null ? mochi.visual.position : crumbleRoot.position;
+            // tot ce nu e fundal: blocurile + decorul turnului, apoi felinarele, textele, standurile (cerul ramane, e al camerei)
+            var roots = new List<Transform> { crumbleRoot };
+            if (alsoCrumble != null && alsoCrumble.Length > 0) roots.AddRange(alsoCrumble);
+            else { var g = GameObject.Find("Gameplay"); if (g != null) roots.Add(g.transform); }
             var blocks = new List<Transform>();
-            foreach (var r in crumbleRoot.GetComponentsInChildren<Renderer>()) blocks.Add(r.transform);
+            foreach (var root in roots)
+                if (root != null && root != transform && !transform.IsChildOf(root))
+                    foreach (var r in root.GetComponentsInChildren<Renderer>())
+                        if (!(r is ParticleSystemRenderer)) blocks.Add(r.transform);
             blocks.Sort((a, b) => Vector3.Distance(b.position, center).CompareTo(Vector3.Distance(a.position, center)));
             int perStep = Mathf.Max(1, Mathf.CeilToInt(blocks.Count * blockInterval / 5f));
             for (int i = 0; i < blocks.Count; i++)
@@ -73,8 +82,6 @@ public class EndingSequence : MonoBehaviour
         }
         yield return new WaitForSeconds(2f);
         yield return WhiteOut();
-        // melodia de final (Audio/Music/Ending, daca ati pus-o): ecranul alb sta cat canta, sau pana apesi o tasta
-        while (GameAudio.EndingPlaying && !AnyKey()) yield return null;
         ScreenFader.FadeToScene(titleScene, 1.2f);
     }
 
@@ -89,16 +96,36 @@ public class EndingSequence : MonoBehaviour
         t.gameObject.SetActive(false);
     }
 
+    /// <summary>Orice tasta, click sau buton de gamepad apasat in frame-ul asta.</summary>
     static bool AnyKey()
     {
         var kb = UnityEngine.InputSystem.Keyboard.current;
+        if (kb != null && kb.anyKey.wasPressedThisFrame) return true;
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        if (mouse != null && (mouse.leftButton.wasPressedThisFrame || mouse.rightButton.wasPressedThisFrame)) return true;
         var pad = UnityEngine.InputSystem.Gamepad.current;
-        return (kb != null && kb.anyKey.wasPressedThisFrame) || (pad != null && pad.buttonSouth.wasPressedThisFrame);
+        if (pad != null)
+            foreach (var c in pad.allControls)
+                if (c is UnityEngine.InputSystem.Controls.ButtonControl b && b.wasPressedThisFrame) return true;
+        return false;
     }
 
+    /// <summary>Pentru teste: true cat timp ecranul alb de final e pe ecran.</summary>
+    public static bool WhiteScreenUp { get; private set; }
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { WhiteScreenUp = false; }
+
+    void OnDestroy() { WhiteScreenUp = false; }
+
+    /// <summary>
+    /// Ecranul alb. Porneste melodia de final (Audio/Music/Ending) si sta alb pana cand:
+    /// se termina melodia (dupa ce au aparut creditele) SAU jucatorul apasa orice tasta (oricand, chiar si in timpul creditelor).
+    /// Fara melodie: creditele + 3 secunde, sau o tasta.
+    /// </summary>
     IEnumerator WhiteOut()
     {
-        GameAudio.PlayEnding();
+        bool song = GameAudio.PlayEnding();
         var go = new GameObject("Ending");
         var canvas = go.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;
@@ -123,6 +150,7 @@ public class EndingSequence : MonoBehaviour
             yield return null;
         }
         img.color = Color.white;
+        WhiteScreenUp = true;
 
         var textGo = new GameObject("Credits");
         textGo.transform.SetParent(go.transform, false);
@@ -136,13 +164,35 @@ public class EndingSequence : MonoBehaviour
         text.rectTransform.offsetMin = Vector2.zero;
         text.rectTransform.offsetMax = Vector2.zero;
 
+        // o secunda de gratie: o tasta tinuta / apasata din joc chiar inainte sa se albeasca nu sare finalul
+        float since = 0f;
+        bool skipped = false;
         string shown = "";
         foreach (string line in credits)
         {
             shown += line + "\n";
             text.text = shown;
-            yield return new WaitForSecondsRealtime(line.Length == 0 ? 0.4f : 1.4f);
+            for (float w = 0f, wait = line.Length == 0 ? 0.4f : 1.4f; w < wait && !skipped; w += Time.unscaledDeltaTime)
+            {
+                yield return null;
+                since += Time.unscaledDeltaTime;
+                skipped = since > 1f && AnyKey();
+            }
+            if (skipped) break;
         }
-        yield return new WaitForSecondsRealtime(3f);
+
+        if (!skipped)
+        {
+            text.text = shown + "\n<size=60%><alpha=#88>press any key</size>";
+            // cu melodie: cat canta; fara: 3 secunde
+            for (float w = 0f; !skipped && (song ? GameAudio.EndingPlaying : w < 3f); w += Time.unscaledDeltaTime)
+            {
+                yield return null;
+                skipped = AnyKey();
+            }
+        }
+
+        GameAudio.StopMusic();
+        WhiteScreenUp = false;
     }
 }

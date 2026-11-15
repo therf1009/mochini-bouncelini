@@ -126,14 +126,15 @@ public static class Level1Builder
         Lantern(c, new Vector3(-1.6f, 16f, -6.5f), new Color(1f, 0.85f, 0.45f));
 
         // ---- standul (QA te trimite in turn)
-        Stand(c, new Vector3(6.5f, 1f, -4.5f), "QA_Tester_04", new[]
+        Stand(c, new Vector3(6.5f, 1f, -4.5f), "QA_Sigma_04", new[]
         {
-            "oh. a player. hi. i'm QA, i test things.",
-            "bad news: patch 1.0.4 removed your DASH. 'underused', apparently.",
-            "the REVERT token is in the shrine, halfway up the old tower. the shrine is sealed... from the front.",
-            "tip: Q and E turn the whole world. this tower is a different tower from every side.",
-            "and if a ledge looks like a wall... look at it from somewhere else."
-        }, "climb the tower, find the REVERT", new Color(0.55f, 0.78f, 0.62f));
+            "oh. a player. hi. QA here. sigma tester, rank 04. the grindset never stops.",
+            "bad news: patch 1.0.4 removed your DASH. 'underused', apparently. the devs are cooked.",
+            "the REVERT token is in the shrine, halfway up the old tower. sealed... from the front. classic.",
+            "Q and E turn the whole world. this tower has different lore from every side.",
+            "a ledge looks like a wall? that's just bad camera aura. look at it from somewhere else.",
+            "go get your dash back. fanum tax not included."
+        }, "climb the tower, find the REVERT", new Color(0.55f, 0.78f, 0.62f), "shades,chain");
 
         // ---- REVERT (dash), cu momentul mare
         Revert(c, new Vector3(3.5f, 15.6f, -4.5f), Ability.Dash, "PATCH 1.0.4  -  REVERTED",

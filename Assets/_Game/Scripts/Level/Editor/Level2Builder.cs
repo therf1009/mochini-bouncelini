@@ -118,14 +118,14 @@ public static class Level2Builder
         Tree(c, new Vector3(10.2f, 1f, -4.6f), 2.6f, barkDark, leaves);
 
         // ---- standul (Community Manager-ul de la v1.1)
-        Stand(c, new Vector3(6.5f, 1f, -5.5f), "Community_Manager", new[]
+        Stand(c, new Vector3(6.5f, 1f, -5.5f), "Ohio_Comm_Mgr", new[]
         {
-            "welcome to v1.1! we listened to all of your feedback.",
-            "then patch 1.1.2 removed the DOUBLE JUMP. 'confusing for new players'.",
-            "its REVERT is up in the old tree. the platforms there run on rails...",
-            "...and a rail that goes INTO the screen looks like it isn't moving at all. turn the world. watch it.",
-            "S to talk to me again. not that you will. nobody does."
-        }, "ride the rails up the tree", new Color(0.92f, 0.55f, 0.70f));
+            "WELCOME TO v1.1!!! we listened to ALL of your feedback. we read none of it.",
+            "then patch 1.1.2 removed the DOUBLE JUMP. 'confusing for new players'. it's giving Ohio.",
+            "its REVERT is up in the old tree. the platforms there ride on rails. very demure. very mindful.",
+            "a rail that goes INTO the screen looks frozen. it's not. turn the world and watch it. real.",
+            "S to talk to me again. you won't. nobody does. i'm fine. this is fine."
+        }, "ride the rails up the tree", new Color(0.92f, 0.55f, 0.70f), "cap,mustache");
 
         Revert(c, new Vector3(9f, 17.6f, -6f), Ability.DoubleJump, "PATCH 1.1.2  -  REVERTED",
             new[] { "Double jump restored (SPACE in the air).", "We hear you." },

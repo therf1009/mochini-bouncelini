@@ -18,6 +18,10 @@ public class PatchNoteUI : MonoBehaviour
 
     static PatchNoteUI instance;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { instance = null; }
+
     readonly Queue<KeyValuePair<string, string[]>> queue = new Queue<KeyValuePair<string, string[]>>();
     RectTransform panel;
     TextMeshProUGUI headerText, bodyText, goalText;

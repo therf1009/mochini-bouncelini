@@ -34,8 +34,9 @@ public class DirectorBoss : PatchSource
 
     int health;
     float timer, hitFlash, hazardTimer, t;
-    bool active, dead;
+    bool active, dead, forcedOnce;
     Transform player;
+    MochiController mochi;
     Vector3 basePos;
     Color screenColor = Color.white;
 
@@ -45,6 +46,7 @@ public class DirectorBoss : PatchSource
     {
         health = maxHealth;
         player = FindPlayer();
+        if (player != null) mochi = player.GetComponent<MochiController>();
         basePos = transform.position;
         timer = fireInterval;
         hazardTimer = 3f;
@@ -72,12 +74,21 @@ public class DirectorBoss : PatchSource
 
         if (player == null) return;
 
+        // in arena se lupta doar din fata sau din spate (din lateral peretii arenei acopera tot).
+        // In arena intri din lateral (putul 2), iar dupa un respawn rotirea poate fi blocata: "firewall-ul" te intoarce singur.
+        int angle = FezRoom.Active != null ? FezRoom.Active.Angle : 0;
+        if (player.position.y >= activateY && (angle % 2) != 0 && FezRotator.Active != null && !FezRotator.Active.IsRotating
+            && (mochi == null || mochi.IsGrounded))
+        {
+            if (!forcedOnce) { PatchNoteUI.Show("FIREWALL", "Camera angle enforced.", "Please face the Director."); forcedOnce = true; }
+            FezRotator.Active.ForceRotateToward(0);   // spre fata (unghiul 0), pe drumul cel mai scurt
+            return;
+        }
+
         if (!active)
         {
-            // doar din fata sau din spate: din lateral, peretii arenei acopera tot
-            int angle = FezRoom.Active != null ? FezRoom.Active.Angle : 0;
             if (player.position.y < activateY || (angle % 2) != 0) return;
-            if (Mathf.Abs(player.position.x - ScreenPosition.x) > 7f) return;
+            if (Mathf.Abs(player.position.x - ScreenPosition.x) > 9f) return;
             Activate();
             return;
         }

@@ -446,11 +446,27 @@ public static class FezLevelKit
     {
         var root = new GameObject("DashOrb").transform; root.SetParent(c.gameplay, false);
         root.position = world;
-        Material m = NerfedEditorUtil.Mat("M_DashOrb", new Color(0.45f, 0.95f, 1f), unlit: true);
-        var crystal = NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Crystal", root, Vector3.zero, Vector3.one * 0.55f, m, keepCollider: false);
+        Material m = NerfedEditorUtil.Mat("M_DashOrb", new Color(0.62f, 1f, 1f), unlit: true);   // deschis: iese din cerul cald
+        var crystal = NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Crystal", root, Vector3.zero, Vector3.one * 0.75f, m, keepCollider: false);
         crystal.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        // cand e in spatele turnului: se vede tot, ca o silueta cyan (shader-ul Mochini/XRay)
+        Shader xray = Shader.Find("Mochini/XRay");
+        if (xray != null)
+        {
+            const string path = NerfedEditorUtil.MaterialsDir + "/M_DashOrbXRay.mat";
+            var xm = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (xm == null) { xm = new Material(xray) { name = "M_DashOrbXRay" }; AssetDatabase.CreateAsset(xm, path); }
+            NerfedEditorUtil.Primitive(PrimitiveType.Cube, "XRay", crystal.transform, Vector3.zero, Vector3.one, xm, keepCollider: false)
+                .GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        }
+        // halou care pulseaza
+        var halo = NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "Halo", root, Vector3.zero, Vector3.one * 1.6f,
+            FxMaterial("M_DashOrbHalo", new Color(0.45f, 0.95f, 1f, 0.22f)), keepCollider: false);
+        halo.GetComponent<MeshRenderer>().shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         var orb = root.gameObject.AddComponent<DashOrb>();
         orb.crystal = crystal.transform;
+        orb.halo = halo.transform;
+        orb.size = 0.75f;
     }
 
     /// <summary>Tokenul REVERT, la o pozitie 3D (centrul lui), cu momentul mare.</summary>
@@ -494,12 +510,12 @@ public static class FezLevelKit
     }
 
     /// <summary>Standul cu personaj, la o pozitie 3D (talpa), cu fata spre fata turnului (unghiul 0).</summary>
-    public static NpcStand Stand(Ctx c, Vector3 feet, string speaker, string[] lines, string goal, Color npcColor)
+    public static NpcStand Stand(Ctx c, Vector3 feet, string speaker, string[] lines, string goal, Color npcColor, string drip = "")
     {
         Material npc = NerfedEditorUtil.Mat("M_Npc_" + ColorUtility.ToHtmlStringRGB(npcColor), npcColor);
         var root = new GameObject("StandAnchor").transform; root.SetParent(c.gameplay, false);
         root.position = feet + new Vector3(0f, 0f, 0.8f);   // tejgheaua sta putin in spatele drumului
-        var stand = LevelBuilderKit.Stand(root, 0f, 0f, speaker, lines, goal, npc, c.theme.ink);
+        var stand = LevelBuilderKit.Stand(root, 0f, 0f, speaker, lines, goal, npc, c.theme.ink, drip);
         stand.transform.localPosition = new Vector3(0f, 0.5f, -1.2f);
         if (stand.talkPrompt != null)
         {

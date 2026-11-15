@@ -95,13 +95,14 @@ public static class TutorialBuilder
         Vine(c, new Vector3(26.8f, 5f, -4.06f), 3, t.capHang);
 
         // ---- standul (QA te intampina, dupa cativa pasi)
-        Stand(c, new Vector3(6.5f, 1f, 0.5f), "QA_Tester_00", new[]
+        Stand(c, new Vector3(6.5f, 1f, 0.5f), "Intern_Skibidi", new[]
         {
-            "oh hey. you're new. welcome to the BETA.",
-            "i'm QA. i test things. today, you're the thing.",
-            "the exit is at the top. bounce your way up there.",
-            "and if something looks impossible... turn the world. Q and E."
-        }, "bounce to the top", new Color(0.62f, 0.76f, 0.95f));
+            "yo. new player detected. welcome to the BETA, no cap.",
+            "i'm the intern. i test stuff. today YOU are the stuff. skibidi.",
+            "the exit is at the top. bounce up there and secure the bag.",
+            "W charges a launch. hold it, let go, ascend. literally.",
+            "and if something looks impossible... it's giving 'turn the world'. Q and E. trust the process."
+        }, "bounce to the top (no cap)", new Color(0.62f, 0.76f, 0.95f), "propeller,headset");
 
         // ---- iesirea: pe fata de sus a ultimei trepte (exista doar privita din lateral)
         Vector3 exitPoint = Top(26, 9, 7);

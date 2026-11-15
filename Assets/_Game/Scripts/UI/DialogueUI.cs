@@ -16,6 +16,10 @@ public class DialogueUI : MonoBehaviour
     static DialogueUI instance;
     static int lastClosedFrame = -10;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { instance = null; lastClosedFrame = -10; }
+
     GameObject box;
     TextMeshProUGUI speakerText, bodyText, hintText;
     string[] lines;
@@ -26,7 +30,7 @@ public class DialogueUI : MonoBehaviour
 
     public static bool IsOpen => instance != null && instance.open;
     /// <summary>Adevarat in cadrul in care s-a inchis (ca acelasi E sa nu redeschida dialogul).</summary>
-    public static bool JustClosed => Time.frameCount - lastClosedFrame < 2;
+    public static bool JustClosed { get { int d = Time.frameCount - lastClosedFrame; return d >= 0 && d < 2; } }
 
     public static void Show(string speaker, string[] lines, System.Action onDone = null)
     {

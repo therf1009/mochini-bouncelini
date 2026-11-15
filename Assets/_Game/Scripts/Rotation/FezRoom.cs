@@ -18,6 +18,10 @@ public class FezRoom : MonoBehaviour
     /// <summary>Camera rotativa din scena (una pe scena). Null in nivelurile 2D clasice.</summary>
     public static FezRoom Active { get; private set; }
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { Active = null; }
+
     [Header("Grila (celule de 1 x 1 x 1)")]
     public int originX;          // prima coloana pe X; la unghiul 0 este si u-ul din stanga camerei
     public int originZ;          // primul rand pe Z

@@ -11,6 +11,10 @@ public static class DashPhase
     static readonly List<Collider2D> colliders = new List<Collider2D>();
     public static IReadOnlyList<Collider2D> Colliders => colliders;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { colliders.Clear(); Awakened = null; }
+
     public static void Register(Collider2D c)
     {
         if (c != null && !colliders.Contains(c)) colliders.Add(c);

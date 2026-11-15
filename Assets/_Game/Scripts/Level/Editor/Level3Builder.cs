@@ -96,15 +96,15 @@ public static class Level3Builder
         }
 
         // ---- standul (QA, ultima data)
-        Stand(c, new Vector3(6.5f, 1f, -4.5f), "QA_Tester_04", new[]
+        Stand(c, new Vector3(6.5f, 1f, -4.5f), "QA_Sigma_04", new[]
         {
-            "you made it to v1.2. the last build.",
-            "the Director shipped itself as DIRECTOR.exe. it's up on the server roof, sealing everything.",
-            "first REVERT is right here: WALL STICK. hold SPACE on a wall, let go to launch.",
-            "the second one is the old Bounce Back - now a parry. click right before a patch hits you and it goes home.",
-            "...if you take the Director down, nobody balances this world anymore. i don't know what happens then.",
-            "go anyway."
-        }, "grab the REVERT, climb the server", new Color(0.55f, 0.78f, 0.62f));
+            "you made it to v1.2. the last build. the vibes are... server room.",
+            "the Director shipped itself as DIRECTOR.exe. it's up on the server roof, gatekeeping the whole game.",
+            "first REVERT is right here: WALL STICK. hold SPACE on a wall, let go to yeet.",
+            "the second one is the old Bounce Back - now a PARRY. click right before a patch hits you. send it home. +1000 aura.",
+            "...if you delete the Director, nobody balances this world anymore. lowkey scary. highkey go.",
+            "i'll be here. mewing. good luck, chat."
+        }, "grab the REVERT, climb the server", new Color(0.55f, 0.78f, 0.62f), "shades,chain,crown");
 
         Revert(c, new Vector3(8.5f, 4.6f, -6f), Ability.WallStick, "PATCH 1.2.0  -  REVERTED",
             new[] { "Wall stick restored (hold SPACE on a wall).", "Let go to launch." },
@@ -129,6 +129,7 @@ public static class Level3Builder
         var ending = new GameObject("EndingSequence").AddComponent<EndingSequence>();
         ending.boss = boss;
         ending.crumbleRoot = c.room.transform;   // tot turnul (blocuri + decor) dispare, cub cu cub
+        ending.alsoCrumble = new[] { c.gameplay };   // si felinarele, textele, standul, tokenurile: ramane doar cerul
 
         // ---- checkpoint-uri
         Checkpoint(c, Top(8, 3, -7));

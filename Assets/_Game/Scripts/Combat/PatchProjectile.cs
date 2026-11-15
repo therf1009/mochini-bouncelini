@@ -12,6 +12,10 @@ public class PatchProjectile : MonoBehaviour
 {
     public static readonly List<PatchProjectile> Active = new List<PatchProjectile>();
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { Active.Clear(); }
+
     public PatchSource owner;
     public Vector2 velocity;
     public bool reflected;

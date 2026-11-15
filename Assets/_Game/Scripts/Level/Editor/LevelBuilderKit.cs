@@ -116,8 +116,64 @@ public static class LevelBuilderKit
     }
 
     /// <summary>Standul: tejghea, personaj cu ochi, firma cu numele. Personajul vorbeste cand ajungi langa el.</summary>
+    /// <summary>Accesoriile NPC-ului (brainrot): "shades", "chain", "cap", "mustache", "crown", "propeller", "headset" - separate prin virgula.
+    /// Capsula NPC-ului: centrul la (0, 0.8, 2), fata spre camera la z ~1.55, crestetul la y ~1.6.</summary>
+    static void Drip(Transform root, string drip, Material eye)
+    {
+        if (string.IsNullOrEmpty(drip)) return;
+        Material black = NerfedEditorUtil.Mat("M_Drip_Black", new Color(0.06f, 0.06f, 0.08f));
+        Material gold = NerfedEditorUtil.Mat("M_Drip_Gold", new Color(1f, 0.78f, 0.25f));
+        Material red = NerfedEditorUtil.Mat("M_Drip_Red", new Color(0.90f, 0.25f, 0.25f));
+        Material blue = NerfedEditorUtil.Mat("M_Drip_Blue", new Color(0.30f, 0.50f, 0.95f));
+        Material yellow = NerfedEditorUtil.Mat("M_Drip_Yellow", new Color(1f, 0.88f, 0.30f));
+        GameObject P(string n, Vector3 pos, Vector3 size, Material m) => NerfedEditorUtil.Primitive(PrimitiveType.Cube, n, root, pos, size, m, keepCollider: false);
+        foreach (var part in drip.Split(','))
+        {
+            switch (part.Trim())
+            {
+                case "shades":   // ochelari de soare peste ochi
+                    P("ShadeL", new Vector3(-0.18f, 1.16f, 1.47f), new Vector3(0.26f, 0.15f, 0.05f), black);
+                    P("ShadeR", new Vector3(0.18f, 1.16f, 1.47f), new Vector3(0.26f, 0.15f, 0.05f), black);
+                    P("ShadeBridge", new Vector3(0f, 1.19f, 1.47f), new Vector3(0.12f, 0.03f, 0.04f), black);
+                    break;
+                case "chain":    // lant de aur, cu medalion
+                    for (int k = -3; k <= 3; k++)
+                    {
+                        float a = k * 0.32f;
+                        P("Chain", new Vector3(Mathf.Sin(a) * 0.36f, 0.78f - Mathf.Cos(a) * 0.22f + 0.22f, 1.55f + Mathf.Abs(k) * 0.03f), Vector3.one * 0.07f, gold);
+                    }
+                    P("Medal", new Vector3(0f, 0.5f, 1.53f), new Vector3(0.16f, 0.2f, 0.05f), gold);
+                    break;
+                case "cap":      // sapca pe dos
+                    P("Cap", new Vector3(0f, 1.62f, 2f), new Vector3(0.9f, 0.2f, 0.9f), red);
+                    P("CapBrim", new Vector3(0f, 1.55f, 2.6f), new Vector3(0.6f, 0.06f, 0.4f), red);
+                    break;
+                case "mustache":
+                    P("Mustache", new Vector3(0f, 0.98f, 1.5f), new Vector3(0.36f, 0.07f, 0.05f), black);
+                    break;
+                case "crown":    // coroana (aura maxima)
+                    P("CrownBand", new Vector3(0f, 1.62f, 2f), new Vector3(0.7f, 0.14f, 0.7f), gold);
+                    foreach (var c in new[] { new Vector2(-0.28f, -0.28f), new Vector2(0.28f, -0.28f), new Vector2(-0.28f, 0.28f), new Vector2(0.28f, 0.28f), new Vector2(0f, -0.3f) })
+                        P("CrownSpike", new Vector3(c.x, 1.78f, 2f + c.y), new Vector3(0.12f, 0.2f, 0.12f), gold);
+                    break;
+                case "propeller": // sapca cu elice
+                    P("PropCap", new Vector3(0f, 1.6f, 2f), new Vector3(0.8f, 0.16f, 0.8f), blue);
+                    P("PropStick", new Vector3(0f, 1.78f, 2f), new Vector3(0.05f, 0.2f, 0.05f), black);
+                    P("PropBladeA", new Vector3(0f, 1.89f, 2f), new Vector3(0.9f, 0.03f, 0.12f), red).transform.localRotation = Quaternion.Euler(0f, 25f, 0f);
+                    P("PropBladeB", new Vector3(0f, 1.9f, 2f), new Vector3(0.9f, 0.03f, 0.12f), yellow).transform.localRotation = Quaternion.Euler(0f, 115f, 0f);
+                    break;
+                case "headset":
+                    P("HeadsetBand", new Vector3(0f, 1.6f, 2f), new Vector3(0.95f, 0.06f, 0.1f), black);
+                    P("HeadsetL", new Vector3(-0.47f, 1.2f, 2f), new Vector3(0.1f, 0.3f, 0.3f), black);
+                    P("HeadsetR", new Vector3(0.47f, 1.2f, 2f), new Vector3(0.1f, 0.3f, 0.3f), black);
+                    P("HeadsetMic", new Vector3(-0.3f, 0.95f, 1.6f), new Vector3(0.3f, 0.04f, 0.04f), black);
+                    break;
+            }
+        }
+    }
+
     public static NpcStand Stand(Transform parent, float x, float floorY, string speaker, string[] lines, string goal,
-                                 Material npcBody, Color promptColor)
+                                 Material npcBody, Color promptColor, string drip = "")
     {
         Material wood = NerfedEditorUtil.Mat("M_StandWood", new Color(0.62f, 0.42f, 0.28f));
         Material eye = NerfedEditorUtil.Mat("M_Eye", new Color(0.10f, 0.10f, 0.12f), unlit: true);
@@ -131,6 +187,7 @@ public static class LevelBuilderKit
         NerfedEditorUtil.Primitive(PrimitiveType.Capsule, "Npc", root, new Vector3(0f, 0.8f, 2f), new Vector3(0.9f, 0.8f, 0.9f), npcBody, keepCollider: false);
         NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeL", root, new Vector3(-0.17f, 1.15f, 1.55f), Vector3.one * 0.13f, eye, keepCollider: false);
         NerfedEditorUtil.Primitive(PrimitiveType.Sphere, "EyeR", root, new Vector3(0.17f, 1.15f, 1.55f), Vector3.one * 0.13f, eye, keepCollider: false);
+        Drip(root, drip, eye);
         NerfedEditorUtil.Primitive(PrimitiveType.Cube, "Sign", root, new Vector3(0f, 2.4f, 1.2f), new Vector3(2.8f, 0.7f, 0.1f), wood, keepCollider: false);
 
         NerfedEditorUtil.WorldText(root, "SignText", speaker, new Vector3(0f, 2.4f, 1.1f), 3.2f, Color.white,

@@ -9,7 +9,7 @@ using UnityEngine.SceneManagement;
 ///
 /// Fisierele (in Assets/_Game/Resources/Audio/):
 ///   Music/OpenWorld, Tutorial, Level1, Level2, Level3, Boss  -> muzica pe scena (title screen-ul are muzica open world-ului)
-///   Music/Ending                                             -> OPTIONAL: melodia voastra pe ecranul alb "thank you for playing"
+///   Music/Ending                                             -> melodia voastra pe ecranul alb "thank you for playing" (sta alb pana se termina sau apesi o tasta)
 ///   Sfx/jump, launch, dash, ability, parry, rotate, boss_defeat, step_a, step_b
 ///   Voices/[numele skin-ului]/...                            -> replici spuse la intamplare cat porti skin-ul acela
 ///                                                               (ex. Voices/Trump/ pentru Skins/Trump.jpg)
@@ -23,6 +23,10 @@ public class GameAudio : MonoBehaviour
 
     static GameAudio instance;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { instance = null; }
+
     AudioSource musicA, musicB, sfx, voice;
     AudioSource currentMusic;
     string currentTrack = "";
@@ -30,6 +34,7 @@ public class GameAudio : MonoBehaviour
     float voiceTimer = 20f;
     AudioClip lastVoice;
     bool ending;
+    float endingStart, endingLength;   // melodia de final: cand a pornit si cat tine (in timp real, nu depinde de placa de sunet)
 
     readonly Dictionary<string, AudioClip> clips = new Dictionary<string, AudioClip>();
     readonly Dictionary<string, AudioClip[]> voices = new Dictionary<string, AudioClip[]>();
@@ -104,11 +109,14 @@ public class GameAudio : MonoBehaviour
         instance.ending = true;
         if (instance.Clip("Music/Ending") == null) { StopMusic(); return false; }
         instance.SwitchTo("Ending", loop: false);
+        instance.endingStart = Time.unscaledTime;
+        instance.endingLength = instance.Clip("Music/Ending").length;
         return true;
     }
 
     /// <summary>Cat timp mai canta melodia de final.</summary>
-    public static bool EndingPlaying => instance != null && instance.ending && instance.currentMusic != null && instance.currentMusic.isPlaying;
+    public static bool EndingPlaying => instance != null && instance.ending && instance.currentTrack == "Ending"
+                                        && Time.unscaledTime - instance.endingStart < instance.endingLength;
 
     /// <summary>Piesa care canta acum (numele fisierului) si daca vorbeste o voce - pentru teste si debug.</summary>
     public static string NowPlaying => instance != null && instance.currentMusic != null && instance.currentMusic.clip != null ? instance.currentMusic.clip.name : "";
@@ -170,7 +178,7 @@ public class GameAudio : MonoBehaviour
         // trecere lina intre piese (in timp real: merge si cu jocul pe pauza)
         float dt = Time.unscaledDeltaTime;
         duck = Mathf.MoveTowards(duck, voice.isPlaying ? 0.45f : 1f, dt * 2f);
-        float target = (ending ? 1f : MusicVolume) * duck;
+        float target = (ending ? 0.75f : MusicVolume) * duck;   // melodia voastra de final: ceva mai tare decat muzica din joc
         foreach (var s in new[] { musicA, musicB })
         {
             float want = s == currentMusic ? target : 0f;

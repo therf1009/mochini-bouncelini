@@ -29,6 +29,10 @@ public class FezRotator : MonoBehaviour
     /// <summary>Blocheaza rotirea (ex. in timpul unei scene cinematice).</summary>
     public static bool Locked;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { Active = null; Locked = false; }
+
     int angle;
     float yaw;
     bool rotating;
@@ -96,6 +100,21 @@ public class FezRotator : MonoBehaviour
         }
 
         StartCoroutine(Rotate(dir, world));
+    }
+
+    /// <summary>Rotire ceruta de joc (ex. boss-ul: "firewall-ul" te intoarce cu fata la el). Merge si cand rotirea e blocata
+    /// pentru jucator (Locked). Un pas de 90 de grade spre unghiul dorit, pe drumul cel mai scurt; false = nu s-a putut acum.</summary>
+    public bool ForceRotateToward(int target)
+    {
+        if (rotating || room == null || player == null) return false;
+        int diff = ((target - angle) % 4 + 4) % 4;
+        if (diff == 0) return false;
+        int dir = diff == 3 ? -1 : 1;
+        int next = (angle + dir + 4) % 4;
+        Vector3 world = TargetWorldPosition();
+        if (!SafeWorldPosition(next, ref world)) return false;
+        StartCoroutine(Rotate(dir, world));
+        return true;
     }
 
     bool FreeAt(int target, Vector3 world) =>

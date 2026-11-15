@@ -10,6 +10,10 @@ using UnityEngine.UI;
 public class ScreenFader : MonoBehaviour
 {
     static ScreenFader instance;
+
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { instance = null; }
     CanvasGroup group;
     bool busy;
 

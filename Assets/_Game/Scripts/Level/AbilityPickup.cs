@@ -33,6 +33,10 @@ public class AbilityPickup : MonoBehaviour
     /// <summary>Anunta ca o abilitate a fost luata (ex. peretii glitch se aprind cand vine dash-ul).</summary>
     public static event System.Action<Ability> Granted;
 
+    // fara reincarcarea domeniului la Play (setarea proiectului), staticele raman de la rularea trecuta: le golim
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetStatics() { Granted = null; }
+
     void Start()
     {
         var mochi = FindAnyObjectByType<MochiController>();

@@ -91,6 +91,7 @@ public class FezRotator : MonoBehaviour
             lastRotateTime = Time.unscaledTime - cooldown + 0.25f;
             CameraShake.Shake(0.06f);
             Denied?.Invoke(dir);
+            GameAudio.Sfx("rotate", 0.35f, 0.7f);
             return;
         }
 
@@ -194,6 +195,7 @@ public class FezRotator : MonoBehaviour
     IEnumerator Rotate(int dir, Vector3 world)
     {
         rotating = true;
+        GameAudio.Sfx("rotate", 0.7f, dir > 0 ? 1.06f : 0.94f);
         lastRotateTime = Time.unscaledTime;
         float previousScale = Time.timeScale > 0f ? Time.timeScale : 1f;
         Time.timeScale = 0f;

@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!28 &2800000
+Texture2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: T_TU_Sky
+  m_ImageContentsHash:
+    serializedVersion: 2
+    Hash: 00000000000000000000000000000000
+  m_IsAlphaChannelOptional: 0
+  serializedVersion: 4
+  m_Width: 2
+  m_Height: 64
+  m_CompleteImageSize: 512
+  m_MipsStripped: 0
+  m_TextureFormat: 4
+  m_MipCount: 1
+  m_IsReadable: 1
+  m_IsPreProcessed: 0
+  m_IgnoreMipmapLimit: 1
+  m_MipmapLimitGroupName: 
+  m_StreamingMipmaps: 0
+  m_StreamingMipmapsPriority: 0
+  m_VTOnly: 0
+  m_AlphaIsTransparency: 0
+  m_ImageCount: 1
+  m_TextureDimension: 2
+  m_TextureSettings:
+    serializedVersion: 2
+    m_FilterMode: 1
+    m_Aniso: 1
+    m_MipBias: 0
+    m_WrapU: 1
+    m_WrapV: 1
+    m_WrapW: 1
+  m_LightmapFormat: 0
+  m_ColorSpace: 1
+  m_PlatformBlob: 
+  image data: 512
+  _typelessdata: ffe0dbffffe0dbfffde0dcfffde0dcfffce0ddfffce0ddfffadfdefffadfdefff9dfdffff9dfdffff7dfe0fff7dfe0fff5dee1fff5dee1fff4dee2fff4dee2fff2dee3fff2dee3fff0dde4fff0dde4ffefdde5ffefdde5ffeddde6ffeddde6ffecdde7ffecdde7ffeadce8ffeadce8ffe8dce9ffe8dce9ffe7dceaffe7dceaffe5dbebffe5dbebffe3dbecffe3dbecffe2dbedffe2dbedffe0daeeffe0daeeffdfdaefffdfdaefffdddaf0ffdddaf0ffdbd9f1ffdbd9f1ffdad9f2ffdad9f2ffd8d9f3ffd8d9f3ffd7d8f4ffd7d8f4ffd5d8f5ffd5d8f5ffd3d8f6ffd3d8f6ffd2d7f7ffd2d7f7ffd0d7f7ffd0d7f7ffced7f8ffced7f8ffcdd6f9ffcdd6f9ffcbd6faffcbd6faffc9d5faffc9d5faffc6d4faffc6d4faffc4d3faffc4d3faffc2d2faffc2d2faffc0d1faffc0d1faffbdd0faffbdd0faffbbcffaffbbcffaffb9cefaffb9cefaffb6cdfaffb6cdfaffb4ccfaffb4ccfaffb2cbfaffb2cbfaffb0cafaffb0cafaffadc9faffadc9faffabc8faffabc8faffa9c7faffa9c7faffa7c6faffa7c6faffa4c5faffa4c5faffa2c4faffa2c4faffa0c3faffa0c3faff9ec2faff9ec2faff9bc1faff9bc1faff99c0faff99c0faff97bffaff97bffaff94befaff94befaff92bdfaff92bdfaff90bcfaff90bcfaff8ebbfaff8ebbfaff8bbbfaff8bbbfaff89bafaff89bafaff87b9faff87b9faff85b8faff85b8faff
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 

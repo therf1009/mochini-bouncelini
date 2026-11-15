@@ -73,6 +73,8 @@ public class EndingSequence : MonoBehaviour
         }
         yield return new WaitForSeconds(2f);
         yield return WhiteOut();
+        // melodia de final (Audio/Music/Ending, daca ati pus-o): ecranul alb sta cat canta, sau pana apesi o tasta
+        while (GameAudio.EndingPlaying && !AnyKey()) yield return null;
         ScreenFader.FadeToScene(titleScene, 1.2f);
     }
 
@@ -87,8 +89,16 @@ public class EndingSequence : MonoBehaviour
         t.gameObject.SetActive(false);
     }
 
+    static bool AnyKey()
+    {
+        var kb = UnityEngine.InputSystem.Keyboard.current;
+        var pad = UnityEngine.InputSystem.Gamepad.current;
+        return (kb != null && kb.anyKey.wasPressedThisFrame) || (pad != null && pad.buttonSouth.wasPressedThisFrame);
+    }
+
     IEnumerator WhiteOut()
     {
+        GameAudio.PlayEnding();
         var go = new GameObject("Ending");
         var canvas = go.AddComponent<Canvas>();
         canvas.renderMode = RenderMode.ScreenSpaceOverlay;

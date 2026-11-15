@@ -118,6 +118,8 @@ public class SkinWardrobe : MonoBehaviour
         if (near != null && Pressed() && !ScreenFader.Busy)
         {
             MochiSkins.CurrentId = near.skin.id;
+            GameAudio.Sfx("ability", 0.35f, 1.6f, 0f);
+            GameAudio.VoiceNow();   // skin-ul cu poza "se prezinta" (daca are voci)
             Fx.Burst(near.ball.position, near.skin.texture == null ? near.skin.color : Color.white, 18, 4f, 0.12f, 3f);
             CameraShake.Shake(0.08f);
         }

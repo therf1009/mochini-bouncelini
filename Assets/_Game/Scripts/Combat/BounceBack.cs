@@ -88,6 +88,7 @@ public class BounceBack : MonoBehaviour
         bool perfect = sinceClick <= perfectWindow;
         if (perfect) perfectHit = true;
         p.Reflect(perfect ? 2.2f : 1.6f);
+        GameAudio.Sfx("parry", perfect ? 1f : 0.75f, perfect ? 1.12f : 1f);
         flash = 1f;
         CameraShake.Shake(perfect ? 0.3f : 0.18f);
         Fx.Burst(FezRoom.World(p.ScreenPosition), perfect ? Color.white : color, perfect ? 22 : 10, perfect ? 7f : 4f, 0.13f, 2f);

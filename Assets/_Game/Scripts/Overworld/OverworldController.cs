@@ -177,6 +177,7 @@ public class OverworldController : MonoBehaviour
     void Jump()
     {
         vertVel = Mathf.Sqrt(2f * -gravity * jumpHeight);
+        GameAudio.Sfx("jump", 0.6f, cc.isGrounded ? 1f : 1.25f);
         lastJumpPressTime = -99f;
         squash = -0.22f;
     }
@@ -200,6 +201,7 @@ public class OverworldController : MonoBehaviour
 
     // --- rostogolire (corpul se rostogoleste, ochii raman in fata) si "idle" viu ---
     Transform bodyPart, facePart;
+    float owStep; bool owAlt;
     float roll, idleTime, lookYaw, lookTarget, lookTimer = 2f;
     Vector3 faceBase;
 
@@ -214,6 +216,12 @@ public class OverworldController : MonoBehaviour
         roll += speed * dt / 0.5f * Mathf.Rad2Deg;
         if (MochiSkins.CurrentIsImage) roll = 0f;   // cu o poza pe el nu se rostogoleste: fata ramane in fata
         bool idle = speed < 0.2f && cc.isGrounded;
+        if (cc.isGrounded && speed > 1.5f)
+        {
+            owStep -= dt;
+            if (owStep <= 0f) { owStep = 0.34f; owAlt = !owAlt; GameAudio.Sfx(owAlt ? "step_a" : "step_b", 0.2f, 1f, 0.08f); }
+        }
+        else owStep = 0.05f;
         idleTime = idle ? idleTime + dt : 0f;
         float settle = Mathf.Clamp01(idleTime * 1.5f);
         // pe loc: se leagana usor inainte-inapoi, ca o minge care nu sta niciodata chiar locului

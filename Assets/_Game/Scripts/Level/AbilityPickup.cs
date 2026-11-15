@@ -66,6 +66,7 @@ public class AbilityPickup : MonoBehaviour
         }
         player.SendMessage("OnAbilityUnlocked", ability, SendMessageOptions.DontRequireReceiver);
         Granted?.Invoke(ability);
+        GameAudio.Sfx("ability", 0.9f, 1f, 0f);
         if (ability == Ability.Dash) DashPhase.Awaken();
 
         if (cinematic) { StartCoroutine(Moment()); return; }

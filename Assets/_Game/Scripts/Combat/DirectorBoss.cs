@@ -99,6 +99,7 @@ public class DirectorBoss : PatchSource
         PatchNoteUI.Show("PATCH 1.2.0  -  FINAL", "DIRECTOR.exe is now live.", "Rotation disabled by firewall.");
         PatchNoteUI.SetGoal("click right before a patch hits you");
         BigBanner.Show("PATCH 1.2.0  -  FINAL", "DIRECTOR.exe", "CLICK  =  parry", 2.2f);
+        GameAudio.PlayMusic("Boss");   // muzica epica a luptei
         CameraShake.Shake(0.3f);
     }
 
@@ -182,6 +183,8 @@ public class DirectorBoss : PatchSource
 
         dead = true;
         PatchNoteUI.SetGoal("");
+        GameAudio.StopMusic();
+        GameAudio.Sfx("boss_defeat", 1f, 1f, 0f);
         foreach (var p in PatchProjectile.Active.ToArray()) Destroy(p.gameObject);
         BigBanner.Show("DIRECTOR.exe", "PROCESS TERMINATED", "", 2.5f);
         StartCoroutine(Fall());

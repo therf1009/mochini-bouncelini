@@ -189,7 +189,22 @@ public class MochiController : MonoBehaviour
             && !isGrounded && !CanGroundHop() && jumpsUsed < maxJumps)
             AirHop();
 
+        Footsteps();
         UpdateVisual();
+    }
+
+    // pasi usori cat aluneci pe sol (sunetul e pus incet, ca sa nu oboseasca)
+    float stepTimer;
+    bool stepAlt;
+    void Footsteps()
+    {
+        float vx = Mathf.Abs(rb.linearVelocityX);
+        if (!isGrounded || vx < 1.5f || isCharging || dashTimer > 0f) { stepTimer = 0.05f; return; }
+        stepTimer -= Time.deltaTime;
+        if (stepTimer > 0f) return;
+        stepTimer = Mathf.Clamp(0.32f * moveSpeed / vx, 0.26f, 0.6f);
+        stepAlt = !stepAlt;
+        GameAudio.Sfx(stepAlt ? "step_a" : "step_b", 0.22f, 1f, 0.08f);
     }
 
     void FixedUpdate()
@@ -342,6 +357,7 @@ public class MochiController : MonoBehaviour
         isGrounded = false;
         jumpsUsed = 1;                   // primul salt consumat
         Kick(-9f);                       // se alungeste la desprindere
+        GameAudio.Sfx("jump", 0.7f);
     }
 
     /// <summary>Impuls dat arcului formei: pozitiv = se turteste, negativ = se alungeste.</summary>
@@ -360,6 +376,7 @@ public class MochiController : MonoBehaviour
         lastJumpPressedTime = -99f;
         lastTakeoffTime = Time.time;
         Kick(-8f);
+        GameAudio.Sfx("jump", 0.7f, 1.25f);   // al doilea salt: putin mai sus
         CameraShake.Shake(0.08f);
     }
 
@@ -379,6 +396,7 @@ public class MochiController : MonoBehaviour
         Kick(7f);                       // se lungeste pe orizontala (turtit pe verticala)
         CameraShake.Shake(0.08f);
         Dashed?.Invoke(dashDir);
+        GameAudio.Sfx("dash", 0.8f);
     }
 
     void EjectFromGlitch()
@@ -427,6 +445,7 @@ public class MochiController : MonoBehaviour
         lastTakeoffTime = Time.time;
         isGrounded = false;
         squashVel = -(14f + 10f * t);   // energia stransa se elibereaza: din turtit, tasneste alungit
+        GameAudio.Sfx("launch", 0.6f + 0.4f * t);
         CameraShake.Shake(0.12f + t * 0.18f);
     }
 
@@ -490,6 +509,7 @@ public class MochiController : MonoBehaviour
         squashVel = -(14f + 10f * t);
         CameraShake.Shake(0.1f + 0.15f * t);
         WallLaunched?.Invoke(t);
+        GameAudio.Sfx("launch", 0.5f + 0.4f * t, 1.15f);
     }
 
     void OnLand(float impactSpeed)
@@ -523,6 +543,7 @@ public class MochiController : MonoBehaviour
             if (vy < 0f) vy += wallBounceLift;
             rb.linearVelocity = new Vector2(Mathf.Sign(normal.x) * incoming * wallBounciness, vy);
             airControlLock = wallBounceControlLock;
+            GameAudio.Sfx("jump", 0.45f, 1.5f);   // "boing" scurt la wall bounce
             dashTimer = 0f;   // un dash intr-un perete devine bounce, nu continua in perete
             SetPhasing(false);
 
